@@ -1,6 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { FeedItem, ViewState } from '../types';
-import { Heart, Play } from 'lucide-react';
+import { FeedItem, ViewState, Creation } from '../types';
+import { Heart, Play, Star } from 'lucide-react';
+import { getPickedCreations } from '../services/apiService';
 
 interface HomeProps {
   feedItems: FeedItem[];
@@ -8,32 +9,36 @@ interface HomeProps {
 }
 
 export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate }) => {
-  // Use first 4 items for preview
   const previewItems = feedItems.slice(0, 4);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
+  const [pickedItems, setPickedItems] = useState<Creation[]>([]);
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video) return;
-
-    // Start playing automatically
-    video.play().catch(() => {
-      // Autoplay was prevented.
-      setIsPlaying(false);
-    });
-    setIsPlaying(true);
-
-
-    // Pause after 5 seconds
-    const timer = setTimeout(() => {
-      if (video.paused) return
-      video.pause();
-      setIsPlaying(false);
-    }, 5000);
-
-    // Cleanup timer
-    return () => clearTimeout(timer);
+    if (video) {
+      video.play().catch(() => setIsPlaying(false));
+      setIsPlaying(true);
+      const timer = setTimeout(() => {
+        if (!video.paused) {
+          video.pause();
+          setIsPlaying(false);
+        }
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, []);
+  
+  useEffect(() => {
+    const fetchPickedItems = async () => {
+      try {
+        const items = await getPickedCreations(6); // Fetch up to 6 picked items
+        setPickedItems(items);
+      } catch (error) {
+        console.error("Failed to fetch picked items:", error);
+      }
+    };
+    fetchPickedItems();
   }, []);
 
   const togglePlay = () => {
@@ -75,7 +80,6 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate }) => {
           </div>
         )}
         
-        {/* Overlay Content */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex flex-col justify-end p-6 pointer-events-none">
           <h1 className="text-white text-3xl font-bold mb-1 tracking-tight">DOTD</h1>
           <p className="text-white/90 text-sm font-light mb-4">
@@ -83,6 +87,33 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate }) => {
           </p>
         </div>
       </div>
+
+      {/* Staff Picks Section */}
+      {pickedItems.length > 0 && (
+        <div className="p-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-lg font-bold flex items-center">
+              <Star size={18} className="mr-2 text-yellow-500 fill-yellow-400" />
+              Staff Picks
+            </h2>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            {pickedItems.map((item) => (
+              <div 
+                key={item.id} 
+                onClick={() => onNavigate(ViewState.FEED)}
+                className="relative aspect-[3/4] rounded-lg overflow-hidden bg-gray-200 cursor-pointer shadow-sm active:scale-[0.98] transition-transform"
+              >
+                <img 
+                  src={item.media_url} 
+                  alt={item.prompt || 'Picked item'} 
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Feed Preview Section */}
       <div className="p-4">

@@ -17,8 +17,8 @@ export interface FeedItem {
   likes: number;
   isLiked: boolean;
   tags: string[];
-  description?: string;
-  insight?: string;
+  description?: string; // This is the original prompt
+  trendInsight?: string; // This is the new field for the analysis text
 }
 
 export interface GenerationParams {

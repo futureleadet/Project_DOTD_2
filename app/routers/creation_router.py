@@ -30,17 +30,17 @@ def _extract_analysis_data(text_part: str) -> Dict[str, Any]:
 
     if text_part:
         # Regex to extract Analysis section - more flexible with newlines/spaces
-        analysis_match = re.search(r'**Analysis:**[\s]*(.*?)(?=\s*\n\n**Recommendation:**|\s*\n\n**Tags:**|$)', text_part, re.DOTALL | re.IGNORECASE)
+        analysis_match = re.search(r'**Analysis:**[\s\n]*(.*?)(?=\s*\n\n**Recommendation:**|\s*\n\n**Tags:**|$)', text_part, re.DOTALL | re.IGNORECASE)
         if analysis_match and analysis_match.group(1) and analysis_match.group(1).strip():
             analysis = analysis_match.group(1).strip()
 
         # Regex to extract Recommendation section - more flexible with newlines/spaces
-        recommendation_match = re.search(r'**Recommendation:**[\s]*(.*?)(?=\s*\n\n**Tags:**|$)', text_part, re.DOTALL | re.IGNORECASE)
+        recommendation_match = re.search(r'**Recommendation:**[\s\n]*(.*?)(?=\s*\n\n**Tags:**|$)', text_part, re.DOTALL | re.IGNORECASE)
         if recommendation_match and recommendation_match.group(1) and recommendation_match.group(1).strip():
             recommendation = recommendation_match.group(1).strip()
 
         # Regex to extract Tags section - more flexible with newlines/spaces
-        tags_match = re.search(r'**Tags:**[\s]*(.*)', text_part, re.DOTALL | re.IGNORECASE)
+        tags_match = re.search(r'**Tags:**[\s\n]*(.*)', text_part, re.DOTALL | re.IGNORECASE)
         if tags_match and tags_match.group(1) and tags_match.group(1).strip():
             # Split by #, filter out empty strings, and trim each tag
             tags = [tag.strip() for tag in tags_match.group(1).split('#') if tag.strip()]
@@ -359,4 +359,21 @@ async def delete_creation(
     """
     user_id = int(current_user["sub"])
     deleted_creation = await service.delete_creation(conn, creation_id, user_id)
+    return deleted_creation
+
+@router.delete("/admin/creations/{creation_id}", response_model=Optional[Dict[str, Any]], tags=["admin"])
+async def admin_delete_creation(
+    creation_id: int,
+    current_admin: dict = Depends(get_current_admin),
+    service: CreationsService = Depends(),
+    conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """
+    Allows an admin to delete any creation by its ID.
+    """
+    admin_user_id = int(current_admin["sub"])
+    # Call the existing service method with is_admin=True
+    deleted_creation = await service.delete_creation(conn, creation_id, admin_user_id, is_admin=True)
+    if not deleted_creation:
+        raise HTTPException(status_code=404, detail="Creation not found or already deleted")
     return deleted_creation

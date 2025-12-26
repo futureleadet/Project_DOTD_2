@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FeedItem, ViewState, User, Creation } from '../types';
-import { Search, Heart, MoreHorizontal, Copy, Check, X } from 'lucide-react';
-import { getFeedCreations, likeCreation, unlikeCreation } from '../services/apiService';
+import { Search, Heart, MoreHorizontal, Copy, Check, X, Trash2, CheckCircle2, Sparkles } from 'lucide-react';
+import { getFeedCreations, likeCreation, unlikeCreation, toggleAdminPick, deleteCreationAdmin } from '../services/apiService';
 
 interface FeedProps {
   currentUser: User | null;
@@ -19,6 +19,8 @@ const mapCreationToFeedItem = (creation: Creation): FeedItem => ({
   isLiked: creation.is_liked || false,
   tags: creation.tags_array || [],
   description: creation.prompt,
+  isPicked: creation.is_picked_by_admin || false,
+  trendInsight: creation.recommendation_text, // Map the new field
 });
 
 export const Feed: React.FC<FeedProps> = ({ currentUser, onNavigate }) => {
@@ -122,6 +124,39 @@ export const Feed: React.FC<FeedProps> = ({ currentUser, onNavigate }) => {
       }
   };
 
+  const handleAdminDelete = async (e: React.MouseEvent, creationId: string | number) => {
+    e.stopPropagation(); // Prevent modal from opening
+    if (!window.confirm("Are you sure you want to delete this creation as an admin?")) return;
+
+    try {
+      await deleteCreationAdmin(String(creationId));
+      setItems(prevItems => prevItems.filter(item => item.id !== creationId));
+    } catch (error) {
+      console.error("Failed to delete creation as admin:", error);
+      alert("Admin deletion failed.");
+    }
+  };
+
+  const handleAdminPick = async (e: React.MouseEvent, creationId: string | number) => {
+    e.stopPropagation(); // Prevent modal from opening
+
+    // Optimistic update
+    setItems(prevItems => prevItems.map(item => 
+      item.id === creationId ? { ...item, isPicked: !item.isPicked } : item
+    ));
+
+    try {
+      await toggleAdminPick(String(creationId));
+    } catch (error) {
+      console.error("Failed to pick creation as admin:", error);
+      alert("Admin pick failed.");
+      // Revert on error
+      setItems(prevItems => prevItems.map(item => 
+        item.id === creationId ? { ...item, isPicked: !item.isPicked } : item
+      ));
+    }
+  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 pb-24 pt-14">
@@ -173,8 +208,9 @@ export const Feed: React.FC<FeedProps> = ({ currentUser, onNavigate }) => {
                 loading="lazy"
               />
               
-              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/20 transition-colors"></div>
+              <div className="absolute inset-0 bg-black/10 group-hover:bg-black/40 transition-colors"></div>
               
+              {/* User-facing info */}
               <div className="absolute bottom-2 left-2 right-2 flex justify-between items-end">
                 <div className="text-[10px] text-white/90 font-mono bg-black/30 px-1.5 py-0.5 rounded backdrop-blur-sm">
                   {item.authorName}
@@ -186,6 +222,26 @@ export const Feed: React.FC<FeedProps> = ({ currentUser, onNavigate }) => {
                   </div>
                 </div>
               </div>
+
+              {/* Admin-only controls */}
+              {currentUser?.role === 'ADMIN' && (
+                <div className="absolute top-2 right-2 flex flex-col space-y-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <button 
+                    onClick={(e) => handleAdminPick(e, item.id)}
+                    className={`p-2 rounded-full backdrop-blur-md transition-colors ${item.isPicked ? 'bg-purple-600 text-white' : 'bg-white/50 text-gray-800 hover:bg-purple-500 hover:text-white'}`}
+                    title={item.isPicked ? "Unpick" : "Pick"}
+                  >
+                    <CheckCircle2 size={16} />
+                  </button>
+                  <button 
+                    onClick={(e) => handleAdminDelete(e, item.id)}
+                    className="p-2 rounded-full bg-white/50 text-gray-800 hover:bg-red-500 hover:text-white backdrop-blur-md transition-colors"
+                    title="Delete"
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </div>
+              )}
             </div>
           ))}
         </div>
@@ -236,10 +292,16 @@ export const Feed: React.FC<FeedProps> = ({ currentUser, onNavigate }) => {
                  ))}
                </div>
                
-               {selectedItem.description && (
-                  <p className="text-sm text-gray-600 leading-relaxed mb-4">
-                    {selectedItem.description}
-                  </p>
+               {selectedItem.trendInsight && (
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
+                    <h4 className="font-semibold text-sm mb-2 flex items-center">
+                      <Sparkles size={14} className="text-purple-500 mr-2" />
+                      Trend Insight
+                    </h4>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {selectedItem.trendInsight}
+                    </p>
+                  </div>
                )}
 
                <div className="text-xs text-gray-400 pt-4 border-t border-gray-100">
