@@ -50,7 +50,7 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate }) => {
   };
 
   return (
-    <div className="flex flex-col min-h-screen pb-20 bg-gray-50">
+    <div className="flex flex-col bg-gray-50">
       {/* Video Hero Section */}
       <div 
         className="relative w-full aspect-[9/16] max-h-[70vh] overflow-hidden bg-black cursor-pointer"
@@ -67,8 +67,11 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate }) => {
         </video>
 
         {!isPlaying && (
-          <div className="absolute inset-0 flex items-center justify-center bg-black/30 backdrop-blur-sm transition-all">
+          <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm transition-all">
             <Play className="w-16 h-16 text-white/80 drop-shadow-lg" fill="currentColor" />
+            <p className="mt-2 text-white text-lg font-semibold drop-shadow-lg">
+              클릭하여 재생
+            </p>
           </div>
         )}
         

@@ -287,20 +287,9 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
 
   // --- Input Stage ---
   return (
-    <div className="min-h-screen bg-gray-50 flex justify-center font-sans text-gray-900">
-      <div className="w-full max-w-md bg-white shadow-xl min-h-screen flex flex-col relative pb-24">
-        
-        <header className="sticky top-0 z-10 bg-white/90 backdrop-blur-md px-5 py-4 flex items-center justify-between border-b border-gray-100">
-          <div className="flex items-center">
-             <button onClick={() => onNavigate(ViewState.HOME)} className="mr-3">
-               <ChevronLeft size={24} />
-             </button>
-             <h1 className="text-xl font-bold tracking-tight">DOTD <span className="text-purple-600">AI</span></h1>
-          </div>
-          <div className="text-sm font-medium text-gray-400">Step 1/1</div>
-        </header>
-
-        <div className="flex-1 overflow-y-auto px-5 py-6">
+    <div className="bg-gray-50 flex justify-center font-sans text-gray-900">
+      <div className="w-full max-w-md bg-white shadow-xl">
+        <div className="px-5 py-6">
           
           {/* Body Info */}
           <section className="mb-8">
@@ -462,7 +451,7 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
           </section>
         </div>
 
-        <footer className="absolute bottom-0 left-0 w-full bg-white border-t border-gray-100 px-5 py-4 z-20 shadow-lg rounded-t-2xl">
+        <footer className="w-full bg-white border-t border-gray-100 px-5 py-4 z-20 shadow-lg rounded-t-2xl">
           <div className="flex items-start justify-center text-[10px] text-gray-500 mb-3 bg-gray-50 p-2 rounded-lg text-center">
             <AlertCircle className="w-3 h-3 mr-1 mt-0.5 text-orange-500 flex-shrink-0" />
             <p>AI generated images may differ from actual products. <br/>Inappropriate requests will be blocked.</p>

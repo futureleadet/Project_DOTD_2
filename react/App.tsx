@@ -152,8 +152,10 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto bg-white min-h-screen shadow-2xl overflow-hidden relative">
-      {renderView()}
+    <div className="max-w-md mx-auto bg-white h-screen shadow-2xl flex flex-col">
+      <div className="flex-1 overflow-y-auto">
+        {renderView()}
+      </div>
       
       {/* Hide Navbar on Login page */}
       {currentView !== ViewState.LOGIN && (

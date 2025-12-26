@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, ViewState, Creation } from '../types';
-import { Settings, Zap } from 'lucide-react';
-import { getCreationsForUser } from '../services/apiService';
+import { Settings, Zap, Trash2 } from 'lucide-react';
+import { getCreationsForUser, deleteCreation } from '../services/apiService';
 
 interface MyPageProps {
   user: User;
@@ -34,6 +34,21 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
     fetchMyCreations();
     // TODO: Add logic to fetch liked creations when API is ready
   }, [user]);
+  
+  const handleDelete = async (creationId: string | number) => {
+    if (!window.confirm("Are you sure you want to delete this creation? This action cannot be undone.")) {
+      return;
+    }
+    
+    try {
+      await deleteCreation(creationId);
+      // Remove the deleted item from the state to update the UI
+      setMyCreations(myCreations.filter(c => c.id !== creationId));
+    } catch (err) {
+      alert("Failed to delete creation. Please try again.");
+      console.error(err);
+    }
+  };
 
   const itemsToShow = tab === 'generated' ? myCreations : likedCreations;
 
@@ -102,8 +117,17 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
           </div>
         ) : (
           itemsToShow.map((item) => (
-            <div key={item.id} className="aspect-square bg-gray-100 relative">
+            <div key={item.id} className="group aspect-square bg-gray-100 relative">
                <img src={item.media_url || item.imageUrl} alt={item.prompt} className="w-full h-full object-cover" />
+               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                  <button 
+                    onClick={() => handleDelete(item.id)}
+                    className="p-3 bg-white/20 rounded-full text-white hover:bg-red-500 hover:text-white"
+                    aria-label="Delete creation"
+                  >
+                     <Trash2 size={20} />
+                  </button>
+               </div>
             </div>
           ))
         )}

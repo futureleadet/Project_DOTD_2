@@ -233,6 +233,24 @@ export const unlikeCreation = async (creationId: string): Promise<any> => {
 };
 
 /**
+ * Allows a user to delete their own creation.
+ * @param creationId The ID of the creation to delete.
+ */
+export const deleteCreation = async (creationId: string | number): Promise<any> => {
+    const response = await fetchWithAuth(`/api/creations/${creationId}`, {
+        method: 'DELETE'
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to delete creation' }));
+        throw new Error(errorData.detail || 'Server error');
+    }
+    // No JSON body is expected on a successful 204 No Content, but FastAPI might return one.
+    // Check for content before trying to parse.
+    const text = await response.text();
+    return text ? JSON.parse(text) : {};
+};
+
+/**
  * Allows an admin to toggle the 'is_picked_by_admin' flag for a creation.
  * @param creationId The ID of the creation.
  * @returns A promise that resolves to the updated status.

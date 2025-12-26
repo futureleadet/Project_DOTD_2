@@ -67,7 +67,7 @@ async def process_creation_task(
     try:
         conn = await asyncpg.connect(db_conn_str)
         
-        # Initialize data and files dictionaries for httpx
+        # Initialize data and files dictionaries for httpx multipart request
         httpx_data = {}
         httpx_files = {}
 
@@ -81,7 +81,7 @@ async def process_creation_task(
         style = form_data.get("style")
         colors = form_data.get("colors")
 
-        # Add all extracted data to the httpx_data to be sent to the webhook
+        # Add all extracted text data to the httpx_data to be sent to the webhook
         if prompt: httpx_data['prompt'] = prompt
         if gender: httpx_data['gender'] = gender
         if age_group: httpx_data['age_group'] = age_group
@@ -89,38 +89,29 @@ async def process_creation_task(
         if body_type: httpx_data['body_type'] = body_type
         if style: httpx_data['style'] = style
         if colors: httpx_data['colors'] = colors
-        
-        # Add image content_type to httpx_data if image is present
+
+        # Handle image by preparing it for the 'files' parameter in a multipart request
         if 'image' in form_data and form_data['image']:
-            httpx_data['content_type'] = form_data['image']['content_type']
-
-        for key, value in form_data.items():
-            if key == 'image' and value:
-                # For image, prepare it for 'files' parameter
-                httpx_files['image'] = (value['filename'], io.BytesIO(value['content']), value['content_type'])
-            # All other relevant text data is already handled above
+            image_info = form_data['image']
+            httpx_files['image'] = (image_info['filename'], io.BytesIO(image_info['content']), image_info['content_type'])
         
-        # NOTE: 'text' from frontend becomes 'prompt' here. Ensure consistency if needed.
-        httpx_data['prompt'] = prompt
-
 
         # Call n8n webhook
-        # webhook_url = 'http://n8n.nemone.store/webhook/c6ebe062-d352-491d-8da3-a5fe2d3f6949'
-        webhook_url = 'https://n8n.jhsol.shop/webhook/b89c411e-d419-46dc-ad19-dc78676a8d1d'
-        
+        webhook_url = 'http://n8n.nemone.store/webhook/c6ebe062-d352-491d-8da3-a5fe2d3f6949'
         
         print(f"DEBUG: Task {task_id} - Attempting httpx.post to n8n webhook: {webhook_url}")
         
         async with httpx.AsyncClient(timeout=300.0) as client:
             try:
+                # Send data as multipart/form-data
                 n8n_response = await client.post(webhook_url, data=httpx_data, files=httpx_files)
                 n8n_response.raise_for_status() # Raise HTTPStatusError for bad responses (4xx or 5xx) 
                 
-                # Capture raw response text for debugging JSONDecodeError
                 n8n_response_text = n8n_response.text
                 print(f"DEBUG: Task {task_id} - N8N raw response text (first 500 chars): {n8n_response_text[:500]}...")
 
                 try:
+                    # Expecting a single JSON object with imageData, mimeType, fashion_tags, trend_insight
                     result = n8n_response.json()
                 except json.JSONDecodeError as jde:
                     print(f"ERROR: Task {task_id} - JSONDecodeError from n8n webhook: {jde}")
@@ -136,32 +127,22 @@ async def process_creation_task(
                 print(f"ERROR: Task {task_id} - httpx.HTTPStatusError from n8n: {e.response.status_code} - {e.response.text}")
                 raise HTTPException(status_code=e.response.status_code, detail=f"N8N webhook returned error: {e.response.text}")
         
+        # Process new result format from n8n (base64 image data)
+        media_data_b64 = result.get("inlineData")
+        mime_type = result.get("mimeType", "image/png") # Default to png if not provided
+        fashion_tags = result.get("fashion_tags", [])
+        trend_insight = result.get("trend_insight", "No insight provided.")
 
-        # Process result from n8n (assuming base64 format)
-        # n8n output wraps the actual JSON in an array and a "json" field.
-        # However, httpx.response.json() might already extract the inner object if it's the only one.
-        # So, we'll try to directly access 'candidates' from 'result'.
-        # If 'result' is still an array, this will fail, and we might need to adjust.
-        inline_data_part = result.get("candidates", [{}])[0].get("content", {}).get("parts", [])
-        inline_data_found = None
-        for part in inline_data_part:
-            if "inlineData" in part:
-                inline_data_found = part.get("inlineData")
-                break
-        
-        if not inline_data_found:
-            raise ValueError("Invalid response structure from n8n webhook: inlineData not found")
-
-        mime_type = inline_data_found["mimeType"]
-        media_data_b64 = inline_data_found["data"]
-        
+        if not media_data_b64:
+            raise HTTPException(status_code=500, detail="N8N webhook response missing 'inlineData'.")
+            
         # Convert base64 to file-like object
         media_blob = b64_to_blob(media_data_b64, mime_type)
-        file_extension = '.' + mime_type.split('/')[-1]
         
-        # --- File Saving Logic (centralized for debugging) ---
-        # NOTE: This file saving logic is now within process_creation_task,
-        # and CreationsService.save_creation will be simplified to just save metadata.
+        # Determine file extension, default to .png
+        file_extension = '.' + mime_type.split('/')[-1] if '/' in mime_type else '.png'
+
+        # --- File Saving Logic ---
         upload_dir = "app/static/uploads"
         os.makedirs(upload_dir, exist_ok=True) # Ensure directory exists
         unique_filename = f"{uuid.uuid4()}{file_extension}"
@@ -178,11 +159,7 @@ async def process_creation_task(
             raise HTTPException(status_code=500, detail=f"Failed to save generated image to disk: {file_save_e}")
         # --- End File Saving Logic ---
 
-        # Extract analysis data from the Gemini text response
-        gemini_text_output = result.get("candidates", [{}])[0].get("content", {}).get("parts", [])[0].get("text", "")
-        extracted_data = _extract_analysis_data(gemini_text_output)
-
-        # Save the creation metadata to our database using the media_url
+        # Save the creation metadata to our database using the new data from n8n
         new_creation = await service.creations_repo.create_creation(
             conn, 
             user_id, 
@@ -192,9 +169,9 @@ async def process_creation_task(
             gender=gender,
             age_group=age_group,
             is_public=is_public,
-            analysis_text=extracted_data["analysis_text"],
-            recommendation_text=extracted_data["recommendation_text"],
-            tags_array=extracted_data["tags_array"],
+            analysis_text=None, # This field is now obsolete
+            recommendation_text=trend_insight, # Use trend_insight for recommendation
+            tags_array=fashion_tags, # Use fashion_tags
             height=int(height) if height else None,
             body_type=body_type,
             style=style,
