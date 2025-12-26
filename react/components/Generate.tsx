@@ -46,8 +46,6 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
   
   const colors = [
     { name: 'Red', value: 'bg-red-500' },
-    { name: 'Yellow', value: 'bg-yellow-400' },
-    { name: 'Green', value: 'bg-green-500' },
     { name: 'Blue', value: 'bg-blue-500' },
     { name: 'Pink', value: 'bg-pink-400' },
     { name: 'Purple', value: 'bg-purple-500' },
@@ -363,7 +361,7 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
 
             <div className="mb-6">
               <label className="block text-sm text-gray-500 mb-3 font-medium">Style <span className="text-xs font-normal text-gray-400 ml-1">(Select 1)</span></label>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 {styles.map((style) => (
                   <button
                     key={style}
@@ -392,7 +390,7 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
                     <button
                       key={color.name}
                       onClick={() => toggleColor(color.name)}
-                      className={`w-10 h-10 rounded-full shadow-sm flex items-center justify-center transition-transform active:scale-95 relative ${color.value} ${color.name === 'White' ? '' : 'border border-transparent'}`}
+                      className={`w-8 h-8 rounded-full shadow-sm flex items-center justify-center transition-transform active:scale-95 relative ${color.value} ${color.name === 'White' ? '' : 'border border-transparent'}`}
                       aria-label={color.name}
                     >
                       {isSelected && (
@@ -432,7 +430,7 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
           </section>
 
            {/* Upload */}
-           <section className="pb-6">
+           <section className="">
             <h2 className="text-lg font-bold mb-4 flex items-center">
                <span className="w-1.5 h-5 bg-black mr-2 rounded-full"></span>
                Your Photo <span className="text-xs font-normal text-gray-400 ml-2">(Optional)</span>
@@ -452,10 +450,6 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
         </div>
 
         <footer className="w-full bg-white border-t border-gray-100 px-5 py-4 z-20 shadow-lg rounded-t-2xl">
-          <div className="flex items-start justify-center text-[10px] text-gray-500 mb-3 bg-gray-50 p-2 rounded-lg text-center">
-            <AlertCircle className="w-3 h-3 mr-1 mt-0.5 text-orange-500 flex-shrink-0" />
-            <p>AI generated images may differ from actual products. <br/>Inappropriate requests will be blocked.</p>
-          </div>
           <button 
             onClick={handleGenerate}
             disabled={!selectedStyle}
