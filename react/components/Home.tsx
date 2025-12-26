@@ -97,7 +97,7 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate }) => {
               Staff Picks
             </h2>
           </div>
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-2 gap-2">
             {pickedItems.map((item) => (
               <div 
                 key={item.id} 

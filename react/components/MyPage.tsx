@@ -102,7 +102,7 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
       </div>
 
       {/* Grid */}
-      <div className="grid grid-cols-3 gap-1 p-1">
+      <div className="grid grid-cols-2 gap-1 p-1">
         {loading ? (
           <div className="col-span-3 py-20 text-center text-gray-400 text-sm">Loading...</div>
         ) : error ? (
