@@ -135,6 +135,14 @@ async def process_creation_task(
 
         if not media_data_b64:
             raise HTTPException(status_code=500, detail="N8N webhook response missing 'inlineData'.")
+
+        # Ensure tags are a list of strings, handling both string and list inputs
+        tags_array_for_db = []
+        if isinstance(fashion_tags, str):
+            # Split string of hashtags into a list, removing empty strings
+            tags_array_for_db = [tag.strip() for tag in fashion_tags.split('#') if tag.strip()]
+        elif isinstance(fashion_tags, list):
+            tags_array_for_db = fashion_tags
             
         # Convert base64 to file-like object
         media_blob = b64_to_blob(media_data_b64, mime_type)
@@ -171,7 +179,7 @@ async def process_creation_task(
             is_public=is_public,
             analysis_text=None, # This field is now obsolete
             recommendation_text=trend_insight, # Use trend_insight for recommendation
-            tags_array=fashion_tags, # Use fashion_tags
+            tags_array=tags_array_for_db, # Use processed tags
             height=int(height) if height else None,
             body_type=body_type,
             style=style,

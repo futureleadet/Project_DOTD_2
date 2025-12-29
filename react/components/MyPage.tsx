@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, ViewState, Creation } from '../types';
-import { Settings, Zap, Trash2 } from 'lucide-react';
+import { Settings, Zap, Trash2, X, Sparkles } from 'lucide-react';
 import { getCreationsForUser, deleteCreation } from '../services/apiService';
 
 interface MyPageProps {
@@ -14,6 +14,7 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
   const [likedCreations, setLikedCreations] = useState<Creation[]>([]); // Placeholder for future
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [selectedCreation, setSelectedCreation] = useState<Creation | null>(null);
 
   useEffect(() => {
     const fetchMyCreations = async () => {
@@ -104,11 +105,11 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
       {/* Grid */}
       <div className="grid grid-cols-2 gap-1 p-1">
         {loading ? (
-          <div className="col-span-3 py-20 text-center text-gray-400 text-sm">Loading...</div>
+          <div className="col-span-2 py-20 text-center text-gray-400 text-sm">Loading...</div>
         ) : error ? (
-          <div className="col-span-3 py-20 text-center text-red-500 text-sm">{error}</div>
+          <div className="col-span-2 py-20 text-center text-red-500 text-sm">{error}</div>
         ) : itemsToShow.length === 0 ? (
-          <div className="col-span-3 py-20 text-center text-gray-400 text-sm">
+          <div className="col-span-2 py-20 text-center text-gray-400 text-sm">
             No items yet.
             <br />
             {tab === 'generated' ? (
@@ -117,21 +118,75 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
           </div>
         ) : (
           itemsToShow.map((item) => (
-            <div key={item.id} className="group bg-gray-100 relative">
-               <img src={item.media_url || item.imageUrl} alt={item.prompt} className="w-full" />
-               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                  <button 
-                    onClick={() => handleDelete(item.id)}
-                    className="p-3 bg-white/20 rounded-full text-white hover:bg-red-500 hover:text-white"
-                    aria-label="Delete creation"
-                  >
-                     <Trash2 size={20} />
-                  </button>
-               </div>
+            <div key={item.id} className="group bg-gray-100 relative aspect-square">
+              <img 
+                src={item.media_url || item.imageUrl} 
+                alt={item.prompt || ''} 
+                className="w-full h-full object-cover cursor-pointer"
+                onClick={() => setSelectedCreation(item)}
+              />
+              <div 
+                onClick={() => handleDelete(item.id)}
+                className="absolute top-2 right-2 p-2 bg-black/40 rounded-full text-white cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                aria-label="Delete creation"
+              >
+                <Trash2 size={16} />
+              </div>
             </div>
           ))
         )}
       </div>
+
+      {/* Detail Modal */}
+      {selectedCreation && (
+        <div 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" 
+          onClick={() => setSelectedCreation(null)}
+        >
+          <div className="bg-white rounded-2xl w-full max-w-sm max-h-[85vh] overflow-hidden flex flex-col relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
+             <button 
+               onClick={() => setSelectedCreation(null)}
+               className="absolute top-3 right-3 z-10 bg-black/50 p-1 rounded-full text-white"
+             >
+               <X size={20} />
+             </button>
+
+             <div className="w-full bg-gray-100">
+               <img src={selectedCreation.media_url || selectedCreation.imageUrl} alt={selectedCreation.prompt || ''} className="w-full h-auto max-h-[50vh] object-cover" />
+             </div>
+
+             <div className="p-5 overflow-y-auto">
+               <div className="flex flex-wrap gap-2 mb-4">
+                 {(selectedCreation.tags_array || []).map(tag => (
+                   <span key={tag} className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-md font-medium">
+                     #{tag}
+                   </span>
+                 ))}
+               </div>
+               
+               {selectedCreation.recommendation_text && (
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
+                    <h4 className="font-semibold text-sm mb-2 flex items-center">
+                      <Sparkles size={14} className="text-purple-500 mr-2" />
+                      Trend Insight
+                    </h4>
+                    <p className="text-sm text-gray-700 leading-relaxed">
+                      {selectedCreation.recommendation_text}
+                    </p>
+                  </div>
+               )}
+
+               <div className="text-sm text-gray-800 bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
+                  <p className="whitespace-pre-line">{selectedCreation.prompt}</p>
+               </div>
+
+               <div className="text-xs text-gray-400 pt-4 border-t border-gray-100">
+                 Created at {new Date(selectedCreation.created_at).toLocaleDateString()}
+               </div>
+             </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

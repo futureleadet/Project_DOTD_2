@@ -245,6 +245,23 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
                
                <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4 relative">
                  <button 
+                    onClick={() => copyToClipboard(insight.tags.join(' '), 'tags')}
+                    className="absolute top-3 right-3 text-gray-400 hover:text-black"
+                 >
+                   {copiedSection === 'tags' ? <Check size={16} className="text-green-500"/> : <Copy size={16} />}
+                 </button>
+                 <h4 className="font-bold text-sm mb-2">Style Tags</h4>
+                 <div className="flex flex-wrap gap-2 pr-6">
+                   {insight.tags.map(tag => (
+                     <span key={tag} className="text-xs text-purple-700 font-medium">
+                       {tag}
+                     </span>
+                   ))}
+                 </div>
+               </div>
+
+               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6 relative">
+                 <button 
                    onClick={() => copyToClipboard(insight.content, 'insight')}
                    className="absolute top-3 right-3 text-gray-400 hover:text-black"
                  >
@@ -254,22 +271,6 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
                  <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
                    {insight.content}
                  </p>
-               </div>
-
-               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6 relative">
-                 <button 
-                    onClick={() => copyToClipboard(insight.tags.join(' '), 'tags')}
-                    className="absolute top-3 right-3 text-gray-400 hover:text-black"
-                 >
-                   {copiedSection === 'tags' ? <Check size={16} className="text-green-500"/> : <Copy size={16} />}
-                 </button>
-                 <div className="flex flex-wrap gap-2 pr-6">
-                   {insight.tags.map(tag => (
-                     <span key={tag} className="text-xs text-purple-700 font-medium">
-                       {tag}
-                     </span>
-                   ))}
-                 </div>
                </div>
 
                <button className="w-full border border-gray-200 py-3 rounded-xl font-medium text-sm flex items-center justify-center hover:bg-gray-50 transition-colors">
