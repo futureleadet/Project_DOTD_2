@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, ViewState, Creation } from '../types';
-import { Settings, Zap, Trash2, X, Sparkles } from 'lucide-react';
+import { Settings, Zap, Trash2, X, Sparkles, Download } from 'lucide-react';
 import { getCreationsForUser, deleteCreation } from '../services/apiService';
 
 interface MyPageProps {
@@ -151,8 +151,17 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
                <X size={20} />
              </button>
 
-             <div className="w-full bg-gray-100">
+             <div className="w-full bg-gray-100 relative">
                <img src={selectedCreation.media_url || selectedCreation.imageUrl} alt={selectedCreation.prompt || ''} className="w-full h-auto max-h-[50vh] object-cover" />
+                <a
+                  href={selectedCreation.media_url || selectedCreation.imageUrl}
+                  download={`creation-${selectedCreation.id}.png`}
+                  className="absolute bottom-3 right-3 z-10 bg-black/50 p-2 rounded-full text-white hover:bg-black/80 transition-opacity"
+                  title="Download original"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  <Download size={18} />
+                </a>
              </div>
 
              <div className="p-5 overflow-y-auto">
