@@ -1,24 +1,35 @@
-from fastapi import APIRouter, Request, Depends
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import RedirectResponse
-from app.dependencies.auth import get_optional_user
-from typing import Optional
+from fastapi import APIRouter, HTTPException
+from pydantic import BaseModel
+import httpx
+import logging
 
 router = APIRouter()
-templates = Jinja2Templates(directory="app/templates")
 
-# @router.get("/")
-# async def index(request: Request, user: Optional[dict] = Depends(get_optional_user)):
-#     return templates.TemplateResponse("index.html", {"request": request, "user": user})
+class WebhookRequest(BaseModel):
+    text: str
 
-# @router.get("/dashboard")
-# async def dashboard(request: Request, user: Optional[dict] = Depends(get_optional_user)):
-#     return templates.TemplateResponse("dashboard.html", {"request": request, "user": user})
+WEBHOOK_URL = "http://n8n.nemone.store/webhook/0e49d469-3a13-4dd2-87d1-a5d27de886b9"
 
-# @router.get("/create")
-# async def create(request: Request, user: Optional[dict] = Depends(get_optional_user)):
-#     return templates.TemplateResponse("create.html", {"request": request, "user": user})
-
-# @router.get("/result/{task_id}")
-# async def get_result_page(request: Request, task_id: str, user: Optional[dict] = Depends(get_optional_user)):
-#     return templates.TemplateResponse("result.html", {"request": request, "task_id": task_id, "user": user})
+@router.post("/api/webhook-proxy")
+async def proxy_webhook(request: WebhookRequest):
+    """
+    Proxies the request to the HTTP webhook to avoid Mixed Content errors.
+    """
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.post(
+                WEBHOOK_URL,
+                json={"text": request.text},
+                timeout=30.0
+            )
+            response.raise_for_status()
+            return response.json()
+    except httpx.HTTPStatusError as e:
+        logging.error(f"Webhook returned error: {e.response.text}")
+        raise HTTPException(status_code=e.response.status_code, detail=f"Webhook Error: {e.response.text}")
+    except httpx.RequestError as e:
+        logging.error(f"Webhook connection failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Webhook Connection Failed: {str(e)}")
+    except Exception as e:
+        logging.error(f"Unexpected error in webhook proxy: {e}")
+        raise HTTPException(status_code=500, detail=str(e))

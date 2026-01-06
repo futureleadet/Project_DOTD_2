@@ -6,6 +6,7 @@ import { Generate } from './components/Generate';
 import { MyPage } from './components/MyPage';
 import { Login } from './components/Login';
 import { AdminDashboard } from './components/AdminDashboard';
+import { WebhookTest } from './components/WebhookTest';
 import { User, ViewState, FeedItem } from './types';
 import { MOCK_FEED_ITEMS } from './constants';
 import { setAuthToken, fetchCurrentUser } from './services/apiService';
@@ -120,6 +121,8 @@ const App: React.FC = () => {
       case ViewState.ADMIN:
         if (!currentUser || currentUser.role !== 'ADMIN') return <Home feedItems={feedItems} onNavigate={setCurrentView} />;
         return <AdminDashboard user={currentUser} onNavigate={setCurrentView} />;
+      case ViewState.WEBHOOK_TEST:
+        return <WebhookTest onNavigate={setCurrentView} />;
       default:
         return <Home feedItems={feedItems} onNavigate={setCurrentView} />;
     }

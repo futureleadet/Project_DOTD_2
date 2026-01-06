@@ -43,5 +43,6 @@ export enum ViewState {
   CREATE = 'create',
   MYPAGE = 'mypage',
   LOGIN = 'login',
-  ADMIN = 'admin'
+  ADMIN = 'admin',
+  WEBHOOK_TEST = 'webhook_test'
 }

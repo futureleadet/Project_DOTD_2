@@ -96,6 +96,9 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate, currentUser }
   return (
     <div className="flex flex-col bg-gray-50">
       <HotTagsTicker />
+      
+
+
       {/* Video Hero Section */}
       <div 
         className="relative w-full aspect-[9/16] max-h-[70vh] overflow-hidden bg-black cursor-pointer"
@@ -130,15 +133,11 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate, currentUser }
           <button 
             onClick={(e) => {
               e.stopPropagation(); // Prevent video click
-              if (currentUser) {
-                onNavigate(ViewState.CREATE);
-              } else {
-                onNavigate(ViewState.LOGIN);
-              }
+              onNavigate(ViewState.WEBHOOK_TEST);
             }}
-            className="bg-black/50 text-white text-lg font-semibold px-8 py-4 rounded-lg backdrop-blur-sm pointer-events-auto hover:bg-white hover:text-black transition-colors"
+            className="bg-black/50 text-white text-lg font-semibold px-8 py-4 rounded-lg backdrop-blur-sm pointer-events-auto hover:bg-white hover:text-black transition-colors whitespace-nowrap"
           >
-            Generate
+            AI 패션 챗봇
           </button>
         </div>
       </div>
