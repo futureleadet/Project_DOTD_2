@@ -10,6 +10,7 @@ import { WebhookTest } from './components/WebhookTest';
 import { User, ViewState, FeedItem } from './types';
 import { MOCK_FEED_ITEMS } from './constants';
 import { setAuthToken, fetchCurrentUser } from './services/apiService';
+import ChatBotButton from './components/ChatBotButton';
 
 // Helper function to decode Base64URL
 const decodeBase64Url = (str: string) => {
@@ -143,6 +144,10 @@ const App: React.FC = () => {
           onLogout={handleLogout}
           userRole={currentUser?.role}
         />
+      )}
+      
+      {currentView !== ViewState.LOGIN && currentView !== ViewState.CREATE && currentView !== ViewState.WEBHOOK_TEST && (
+        <ChatBotButton onClick={() => setCurrentView(ViewState.WEBHOOK_TEST)} />
       )}
     </div>
   );
