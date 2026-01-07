@@ -22,8 +22,8 @@ export const Navbar: React.FC<NavbarProps> = ({ currentView, onNavigate, current
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 w-full bg-white border-t border-gray-100 pb-safe pt-2 px-4 sm:px-6 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
-      <div className="flex justify-around items-center h-16 max-w-md mx-auto">
+    <nav className="fixed bottom-0 left-0 right-0 w-full max-w-md mx-auto bg-white border-t border-gray-100 pb-safe pt-2 px-4 z-50 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+      <div className="flex justify-around items-center h-16">
         
         {/* Home */}
         <button 

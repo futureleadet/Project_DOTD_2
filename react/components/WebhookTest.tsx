@@ -153,21 +153,21 @@ export const WebhookTest: React.FC<WebhookTestProps> = ({ onNavigate }) => {
 
       {/* Input Area */}
       <div className="p-4 bg-white border-t border-gray-100 pb-safe">
-        <form onSubmit={handleSubmit} className="relative flex items-center">
+        <form onSubmit={handleSubmit} className="flex items-center gap-2">
           <input
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             placeholder="메시지를 입력하세요..."
-            className="w-full pl-4 pr-12 py-3 bg-gray-100 border-none rounded-2xl text-sm focus:ring-2 focus:ring-black outline-none transition-all"
+            className="flex-1 px-4 py-3 bg-gray-100 border-none rounded-2xl text-sm focus:ring-2 focus:ring-black outline-none transition-all"
             disabled={loading}
           />
           <button
             type="submit"
             disabled={loading || !inputText.trim()}
-            className="absolute right-2 p-2 bg-black text-white rounded-xl disabled:opacity-30 transition-all active:scale-95"
+            className="flex-shrink-0 p-3 bg-black text-white rounded-xl disabled:opacity-30 transition-all active:scale-95"
           >
-            <Send size={18} />
+            <Send size={20} />
           </button>
         </form>
       </div>
