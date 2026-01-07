@@ -1,3 +1,5 @@
+@import "tailwindcss";
+
 html, body {
   margin: 0;
   padding: 0;
@@ -27,4 +29,15 @@ html {
   to {
     transform: translateX(-100%);
   }
+}
+
+/* Safe area utilities */
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top);
+}
+@utility pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+@utility h-dvh {
+  height: 100dvh;
 }

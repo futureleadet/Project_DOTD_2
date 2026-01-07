@@ -89,9 +89,9 @@ export const WebhookTest: React.FC<WebhookTestProps> = ({ onNavigate }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white max-w-full overflow-hidden">
+    <div className="flex flex-col h-[100dvh] bg-white max-w-full overflow-hidden">
       {/* Header */}
-      <div className="bg-white px-4 py-3 flex items-center border-b border-gray-100 sticky top-0 z-10">
+      <div className="bg-white px-4 py-3 flex items-center border-b border-gray-100 sticky top-0 z-10 pt-safe">
         <button 
           onClick={() => onNavigate(ViewState.HOME)}
           className="mr-3 p-2 hover:bg-gray-100 rounded-full transition-colors"

@@ -17,7 +17,7 @@ const ChatBotButton: React.FC<ChatBotButtonProps> = ({ onClick }) => {
         repeat: Infinity,
         ease: "easeInOut",
       }}
-      className="fixed bottom-6 right-6 z-50"
+      className="absolute bottom-24 right-6 z-50"
     >
       <motion.button
         // 2. 클릭 시 눌리는 피드백 효과
