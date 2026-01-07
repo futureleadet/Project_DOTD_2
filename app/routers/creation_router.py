@@ -98,7 +98,7 @@ async def process_creation_task(
         
 
         # Call n8n webhook
-        webhook_url = 'http://n8n.nemone.store/webhook/c6ebe062-d352-491d-8da3-a5fe2d3f6949'
+        webhook_url = 'http://n8n.nemone.store/webhook/genrate-style'
         
         print(f"DEBUG: Task {task_id} - Attempting httpx.post to n8n webhook: {webhook_url}")
         
