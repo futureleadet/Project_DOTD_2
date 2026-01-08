@@ -133,11 +133,11 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate, currentUser }
           <button 
             onClick={(e) => {
               e.stopPropagation(); // Prevent video click
-              onNavigate(ViewState.WEBHOOK_TEST);
+              onNavigate(ViewState.CREATE);
             }}
             className="bg-black/50 text-white text-lg font-semibold px-8 py-4 rounded-lg backdrop-blur-sm pointer-events-auto hover:bg-white hover:text-black transition-colors whitespace-nowrap"
           >
-            AI 패션 챗봇
+            생성하기
           </button>
         </div>
       </div>
