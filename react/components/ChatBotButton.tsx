@@ -24,12 +24,16 @@ const ChatBotButton: React.FC<ChatBotButtonProps> = ({ onClick }) => {
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
         onClick={onClick}
-        className="flex items-center justify-center w-16 h-16 bg-gradient-to-tr from-blue-400 to-purple-500 rounded-full shadow-lg text-white text-3xl cursor-pointer border-none outline-none"
-        style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.2)' }}
+        className="flex items-center justify-center w-16 h-16 bg-gray-900 rounded-full shadow-lg overflow-hidden border-2 border-gray-800 cursor-pointer outline-none"
+        style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.4)' }}
         aria-label="AI Fashion Chatbot"
       >
-        {/* 귀여운 아이콘 (Emoji나 SVG) */}
-        🤖
+        {/* 업로드된 WebP 아이콘 적용 */}
+        <img 
+          src="/static/files/icon.webp" 
+          alt="Chatbot Icon" 
+          className="w-full h-full object-cover"
+        />
         {/* 알림 배지 같은 포인트 (선택) */}
         <span className="absolute top-0 right-0 flex h-4 w-4">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>

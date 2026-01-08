@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { FeedItem, ViewState, User, Creation } from '../types';
-import { Search, Heart, MoreHorizontal, Copy, Check, X, Trash2, CheckCircle2, Sparkles } from 'lucide-react';
+import { Search, Heart, CheckCircle2, Trash2 } from 'lucide-react';
 import { getFeedCreations, likeCreation, unlikeCreation, toggleAdminPick, deleteCreationAdmin } from '../services/apiService';
+import { ResultPage } from './ResultPage';
 
 interface FeedProps {
   currentUser: User | null;
@@ -250,73 +251,19 @@ export const Feed: React.FC<FeedProps> = ({ currentUser, onNavigate }) => {
         {!loading && items.length === 0 && <p className="text-center col-span-2 py-20 text-gray-500">No items in the feed yet.</p>}
       </div>
 
-      {/* Detail Modal */}
+      {/* Detail Modal (ResultPage) */}
       {selectedItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => setSelectedItem(null)}>
-          <div className="bg-white rounded-2xl w-full max-w-sm max-h-[85vh] overflow-hidden flex flex-col relative shadow-2xl" onClick={(e) => e.stopPropagation()}>
-             
-             <button 
-               onClick={() => setSelectedItem(null)}
-               className="absolute top-3 right-3 z-10 bg-black/50 p-1 rounded-full text-white"
-             >
-               <X size={20} />
-             </button>
-
-             <div className="w-full bg-gray-100">
-               <img src={selectedItem.imageUrl} className="w-full h-auto max-h-[50vh] object-cover" />
-             </div>
-
-             <div className="p-5 overflow-y-auto">
-               <div className="flex justify-between items-center mb-4">
-                 <div>
-                   <h3 className="font-bold text-lg">{selectedItem.authorName}</h3>
-                   <span className="text-xs text-gray-500 font-mono">ID: {selectedItem.authorId}</span>
-                 </div>
-                 <div className="flex space-x-3">
-                    <button onClick={() => handleLikeToggle(selectedItem)} className={`flex flex-col items-center ${selectedItem.isLiked ? 'text-pink-500' : 'text-gray-400'}`}>
-                      <Heart className={`${selectedItem.isLiked ? 'fill-pink-500' : ''} w-6 h-6`} />
-                      <span className="text-xs font-bold">{selectedItem.likes}</span>
-                    </button>
-                    <button onClick={handleCopyLink} className="flex flex-col items-center text-gray-500">
-                      <Copy className="w-6 h-6" />
-                      <span className="text-xs font-bold">Copy</span>
-                    </button>
-                 </div>
-               </div>
-
-               {selectedItem.trendInsight && (
-                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4">
-                    <h4 className="font-semibold text-sm mb-2 flex items-center">
-                      <Sparkles size={14} className="text-purple-500 mr-2" />
-                      Trend Insight
-                    </h4>
-                    <p className="text-sm text-gray-700 leading-relaxed">
-                      {selectedItem.trendInsight}
-                    </p>
-                  </div>
-               )}
-
-               <div className="flex flex-wrap gap-2 mb-4">
-                 {selectedItem.tags.map(tag => (
-                   <span key={tag} className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded-md font-medium">
-                     #{tag}
-                   </span>
-                 ))}
-               </div>
-
-               <div className="text-xs text-gray-400 pt-4 border-t border-gray-100">
-                 Created at {new Date(selectedItem.createdAt).toLocaleDateString()}
-               </div>
-             </div>
-             
-             {showCopyToast && (
-               <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 bg-black/80 text-white text-xs py-2 px-4 rounded-full flex items-center shadow-lg">
-                 <Check size={14} className="mr-1.5" />
-                 Link Copied!
-               </div>
-             )}
-          </div>
-        </div>
+        <ResultPage
+          mode="view"
+          generatedImage={selectedItem.imageUrl}
+          insight={selectedItem.trendInsight ? {
+             title: "Style Analysis", // Default title as it might not be stored
+             content: selectedItem.trendInsight,
+             tags: selectedItem.tags
+          } : null}
+          onNavigate={onNavigate}
+          onClose={() => setSelectedItem(null)}
+        />
       )}
     </div>
   );

@@ -7,6 +7,7 @@ import { MyPage } from './components/MyPage';
 import { Login } from './components/Login';
 import { AdminDashboard } from './components/AdminDashboard';
 import { WebhookTest } from './components/WebhookTest';
+import { ShoppingPage } from './components/ShoppingPage';
 import { User, ViewState, FeedItem } from './types';
 import { MOCK_FEED_ITEMS } from './constants';
 import { setAuthToken, fetchCurrentUser } from './services/apiService';
@@ -124,6 +125,8 @@ const App: React.FC = () => {
         return <AdminDashboard user={currentUser} onNavigate={setCurrentView} />;
       case ViewState.WEBHOOK_TEST:
         return <WebhookTest onNavigate={setCurrentView} />;
+      case ViewState.SHOPPING:
+        return <ShoppingPage onNavigate={setCurrentView} />;
       default:
         return <Home feedItems={feedItems} onNavigate={setCurrentView} />;
     }

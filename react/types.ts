@@ -44,5 +44,16 @@ export enum ViewState {
   MYPAGE = 'mypage',
   LOGIN = 'login',
   ADMIN = 'admin',
-  WEBHOOK_TEST = 'webhook_test'
+  WEBHOOK_TEST = 'webhook_test',
+  SHOPPING = 'shopping'
+}
+
+export interface ShoppingItem {
+  id: number | string;
+  brand: string;
+  name: string;
+  price: string;
+  tip: string;
+  link: string;
+  imageUrl?: string;
 }

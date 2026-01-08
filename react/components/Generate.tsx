@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { createGenerationTask, getTaskStatus } from '../services/apiService';
 import { GenerationParams, TrendInsight, FeedItem, User, ViewState, Task } from '../types';
+import { ResultPage } from './ResultPage';
 
 interface GenerateProps {
   currentUser: User | null;
@@ -202,91 +203,13 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
 
   if (stage === 'result') {
     return (
-      <div className="min-h-screen bg-gray-50 pb-24 pt-4">
-        <div className="max-w-md mx-auto bg-white min-h-screen shadow-xl">
-            <div className="px-5 py-4 border-b border-gray-100 flex items-center">
-                <button onClick={() => onNavigate(ViewState.HOME)} className="flex items-center text-sm font-semibold text-gray-600 hover:text-black">
-                    <ChevronLeft size={20} className="mr-1" />
-                    Home
-                </button>
-            </div>
-           {/* Image Result */}
-           <div className="relative">
-             <img src={generatedImage} alt="Generated Fashion" className="w-full h-auto max-h-[60vh] object-contain bg-gray-100" />
-             <button className="absolute top-4 right-4 bg-white/80 p-2 rounded-full shadow-sm hover:bg-white" onClick={() => {
-                 const link = document.createElement('a');
-                 link.href = generatedImage;
-                 link.download = `DOTD-${Date.now()}.png`;
-                 link.click();
-             }}>
-               <Download size={20} />
-             </button>
-           </div>
-
-           {/* Actions */}
-           <div className="p-5 flex space-x-3 border-b border-gray-100">
-             <button 
-                onClick={handleAddToFeed}
-                className="flex-1 bg-black text-white py-3 rounded-xl font-bold text-sm shadow-md active:scale-95 transition-transform"
-             >
-               Upload to Feed
-             </button>
-             <button 
-                onClick={() => setStage('input')}
-                className="flex-1 bg-gray-100 text-gray-700 py-3 rounded-xl font-bold text-sm hover:bg-gray-200"
-             >
-               Create Another
-             </button>
-           </div>
-
-           {/* Trend Insight */}
-           {insight && (
-             <div className="p-5">
-               <div className="flex justify-between items-center mb-4">
-                 <h3 className="text-lg font-bold flex items-center">
-                   <Sparkles size={16} className="text-purple-600 mr-2" />
-                   Trend Insight
-                 </h3>
-               </div>
-               
-               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-4 relative">
-                 <button 
-                    onClick={() => copyToClipboard(insight.tags.join(' '), 'tags')}
-                    className="absolute top-3 right-3 text-gray-400 hover:text-black"
-                 >
-                   {copiedSection === 'tags' ? <Check size={16} className="text-green-500"/> : <Copy size={16} />}
-                 </button>
-                 <h4 className="font-bold text-sm mb-2">Style Tags</h4>
-                 <div className="flex flex-wrap gap-2 pr-6">
-                   {insight.tags.map(tag => (
-                     <span key={tag} className="text-xs text-purple-700 font-medium">
-                       {tag}
-                     </span>
-                   ))}
-                 </div>
-               </div>
-
-               <div className="bg-gray-50 p-4 rounded-xl border border-gray-100 mb-6 relative">
-                 <button 
-                   onClick={() => copyToClipboard(insight.content, 'insight')}
-                   className="absolute top-3 right-3 text-gray-400 hover:text-black"
-                 >
-                   {copiedSection === 'insight' ? <Check size={16} className="text-green-500"/> : <Copy size={16} />}
-                 </button>
-                 <h4 className="font-bold text-sm mb-2">{insight.title}</h4>
-                 <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-line">
-                   {insight.content}
-                 </p>
-               </div>
-
-               <button className="w-full border border-gray-200 py-3 rounded-xl font-medium text-sm flex items-center justify-center hover:bg-gray-50 transition-colors">
-                 <ShoppingBag size={16} className="mr-2 text-gray-500" />
-                 Shop this style (Coming Soon)
-               </button>
-             </div>
-           )}
-        </div>
-      </div>
+      <ResultPage 
+        generatedImage={generatedImage}
+        insight={insight}
+        onNavigate={onNavigate}
+        onAddToFeed={handleAddToFeed}
+        onReset={() => setStage('input')}
+      />
     );
   }
 
