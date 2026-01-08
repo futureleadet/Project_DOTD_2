@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict eh7j02UQIew4AEOwQ0Fv7nAZwO4ww7ZF9kskQtOmn05PxPTfPPLDp9Yo535vOvx
+\restrict 7WTVStlNMxs9BBiYWh0wZiymdvj0EpzjqkUPCHv4vOGKTX9M99XkK8w4q3WaGgH
 
 -- Dumped from database version 16.11 (Debian 16.11-1.pgdg12+1)
 -- Dumped by pg_dump version 17.6 (Debian 17.6-0+deb13u1)
@@ -93,7 +93,8 @@ CREATE TABLE public.creations (
     height integer,
     body_type character varying(50),
     style character varying(50),
-    colors character varying(255)
+    colors character varying(255),
+    shopping_results jsonb
 );
 
 
@@ -389,5 +390,5 @@ ALTER TABLE ONLY public.likes
 -- PostgreSQL database dump complete
 --
 
-\unrestrict eh7j02UQIew4AEOwQ0Fv7nAZwO4ww7ZF9kskQtOmn05PxPTfPPLDp9Yo535vOvx
+\unrestrict 7WTVStlNMxs9BBiYWh0wZiymdvj0EpzjqkUPCHv4vOGKTX9M99XkK8w4q3WaGgH
 

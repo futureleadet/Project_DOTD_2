@@ -28,9 +28,9 @@ const ChatBotButton: React.FC<ChatBotButtonProps> = ({ onClick }) => {
         style={{ boxShadow: '0 8px 30px rgba(0,0,0,0.4)' }}
         aria-label="AI Fashion Chatbot"
       >
-        {/* 업로드된 WebP 아이콘 적용 */}
+        {/* 업로드된 아이콘 적용 */}
         <img 
-          src="/static/files/icon.webp" 
+          src="/static/files/icon2.png" 
           alt="Chatbot Icon" 
           className="w-full h-full object-cover"
         />

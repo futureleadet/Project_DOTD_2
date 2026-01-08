@@ -7,24 +7,50 @@ import { ResultPage } from './ResultPage';
 interface FeedProps {
   currentUser: User | null;
   onNavigate: (view: ViewState) => void;
+  onShop?: (insight: string, items?: any[], creationId?: string) => void;
 }
 
 // Helper to map API's Creation object to frontend's FeedItem
-const mapCreationToFeedItem = (creation: Creation): FeedItem => ({
-  id: creation.id,
-  imageUrl: creation.media_url,
-  authorId: creation.user_id,
-  authorName: creation.author_name || 'Anonymous',
-  createdAt: creation.created_at,
-  likes: creation.likes_count,
-  isLiked: creation.is_liked || false,
-  tags: creation.tags_array || [],
-  description: creation.prompt,
-  isPicked: creation.is_picked_by_admin || false,
-  trendInsight: creation.recommendation_text, // Map the new field
-});
+const mapCreationToFeedItem = (creation: Creation): FeedItem => {
+  let shoppingList = undefined;
+  if (creation.shopping_results) {
+      try {
+          const parsed = typeof creation.shopping_results === 'string' ? JSON.parse(creation.shopping_results) : creation.shopping_results;
+          if (parsed && parsed.shopping_list) {
+              shoppingList = parsed.shopping_list.map((item: any, index: number) => ({
+                  id: index,
+                  category: item.category,
+                  brand: item.brand,
+                  name: item.item_name,
+                  price: item.price,
+                  tip: item.reason,
+                  link: item.link,
+                  imageUrl: item.thumbnail_url,
+                  search_keyword: item.search_keyword
+              }));
+          }
+      } catch (e) {
+          console.error("Failed to parse shopping results", e);
+      }
+  }
 
-export const Feed: React.FC<FeedProps> = ({ currentUser, onNavigate }) => {
+  return {
+    id: creation.id,
+    imageUrl: creation.media_url,
+    authorId: creation.user_id,
+    authorName: creation.author_name || 'Anonymous',
+    createdAt: creation.created_at,
+    likes: creation.likes_count,
+    isLiked: creation.is_liked || false,
+    tags: creation.tags_array || [],
+    description: creation.prompt,
+    isPicked: creation.is_picked_by_admin || false,
+    trendInsight: creation.recommendation_text,
+    shoppingList: shoppingList
+  };
+};
+
+export const Feed: React.FC<FeedProps> = ({ currentUser, onNavigate, onShop }) => {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);
   const [showCopyToast, setShowCopyToast] = useState(false);
@@ -263,6 +289,13 @@ export const Feed: React.FC<FeedProps> = ({ currentUser, onNavigate }) => {
           } : null}
           onNavigate={onNavigate}
           onClose={() => setSelectedItem(null)}
+          onShop={() => {
+              if (onShop) {
+                  onShop(selectedItem.trendInsight || '', selectedItem.shoppingList, selectedItem.id);
+              }
+          }}
+          shoppingList={selectedItem.shoppingList}
+          creationId={selectedItem.id}
         />
       )}
     </div>

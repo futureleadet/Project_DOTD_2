@@ -379,7 +379,6 @@ export const getUsersCountAdmin = async (): Promise<{ users_count: number }> => 
 
 
 /**
-
  * Sets a specific creation as the main one for the discovery page.
 
  * @param creationId The ID of the creation to set as main.
@@ -404,4 +403,26 @@ export const setMainCreation = async (creationId: string): Promise<any> => {
 
     return response.json();
 
+};
+
+/**
+ * Fetches shopping recommendations based on trend insight.
+ * @param trendInsight The analysis text to base recommendations on.
+ * @param creationId Optional ID of the creation to save results to.
+ */
+export const getShoppingRecommendations = async (trendInsight: string, creationId?: string): Promise<{ shopping_list: any[] }> => {
+    const body: any = { trend_insight: trendInsight };
+    if (creationId) {
+        body.creation_id = parseInt(creationId);
+    }
+
+    const response = await fetchWithAuth('/api/shopping/recommend', {
+        method: 'POST',
+        body: JSON.stringify(body),
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to fetch shopping recommendations' }));
+        throw new Error(errorData.detail || 'Server error');
+    }
+    return response.json();
 };

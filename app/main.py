@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from app.config.settings import settings
 from app.middlewares.logging_middleware import LoggingMiddleware
-from app.routers import auth_router, analysis_router, admin_router, user_router, creation_router, index_router
+from app.routers import auth_router, analysis_router, admin_router, user_router, creation_router, index_router, shopping_router
 import os
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.PROJECT_VERSION)
@@ -42,6 +42,7 @@ app.include_router(admin_router.router)
 app.include_router(user_router.router)
 app.include_router(creation_router.router)
 app.include_router(index_router.router)
+app.include_router(shopping_router.router)
 
 # Static files for user uploads
 app.mount("/static", StaticFiles(directory="app/static"), name="static")

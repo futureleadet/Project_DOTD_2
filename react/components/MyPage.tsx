@@ -16,9 +16,10 @@ import { updateUserProfile, fetchCurrentUser } from '../services/apiService';
 interface MyPageProps {
   user: User;
   onNavigate: (view: ViewState) => void;
+  onShop?: (insight: string) => void;
 }
 
-export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate }) => {
+export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate, onShop }) => {
   const [user, setUser] = useState<User>(initialUser);
   const [activeTab, setActiveTab] = useState<TabType>('generations');
   const [myItems, setMyItems] = useState<FeedItem[]>([]);
@@ -103,18 +104,45 @@ export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate })
         // API service returns Creation[], which is very similar to FeedItem. 
         // We might need to map fields: media_url -> imageUrl, created_at -> createdAt
         
-        const mapCreationToFeedItem = (c: any): FeedItem => ({
-            id: c.id,
-            imageUrl: c.media_url,
-            authorId: c.user_id,
-            authorName: user.name, // Current user is author
-            createdAt: c.created_at,
-            likes: c.likes_count,
-            isLiked: c.is_liked,
-            tags: c.tags_array || [],
-            description: c.prompt,
-            trendInsight: c.recommendation_text
-        });
+        const mapCreationToFeedItem = (c: any): FeedItem => {
+            // Parse shopping_results if it exists (it's JSON string or object from DB)
+            let shoppingList = undefined;
+            if (c.shopping_results) {
+                try {
+                    const parsed = typeof c.shopping_results === 'string' ? JSON.parse(c.shopping_results) : c.shopping_results;
+                    if (parsed && parsed.shopping_list) {
+                        // Map raw JSON to ShoppingItem[]
+                        shoppingList = parsed.shopping_list.map((item: any, index: number) => ({
+                            id: index,
+                            category: item.category,
+                            brand: item.brand,
+                            name: item.item_name,
+                            price: item.price,
+                            tip: item.reason,
+                            link: item.link,
+                            imageUrl: item.thumbnail_url,
+                            search_keyword: item.search_keyword
+                        }));
+                    }
+                } catch (e) {
+                    console.error("Failed to parse shopping results", e);
+                }
+            }
+
+            return {
+                id: c.id,
+                imageUrl: c.media_url,
+                authorId: c.user_id,
+                authorName: user.name, // Current user is author
+                createdAt: c.created_at,
+                likes: c.likes_count,
+                isLiked: c.is_liked,
+                tags: c.tags_array || [],
+                description: c.prompt,
+                trendInsight: c.recommendation_text,
+                shoppingList: shoppingList
+            };
+        };
 
         setMyItems(creations.map(mapCreationToFeedItem));
         setLikedItems(liked.map(mapCreationToFeedItem));
@@ -174,6 +202,16 @@ export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate })
           } : null}
           onNavigate={onNavigate}
           onClose={() => setSelectedItem(null)}
+          shoppingList={selectedItem.shoppingList}
+          creationId={selectedItem.id}
+          onShop={() => {
+              if (onShop) {
+                  // If items exist, pass them. Otherwise just pass insight (though user said no webhook for MyPage)
+                  // If no items, the button shouldn't be visible or enabled ideally, 
+                  // but here we pass whatever we have. ResultPage should handle visibility.
+                  onShop(selectedItem.trendInsight || '', selectedItem.shoppingList, selectedItem.id);
+              }
+          }}
         />
       )}
 

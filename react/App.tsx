@@ -29,6 +29,9 @@ const App: React.FC = () => {
   const [feedItems, setFeedItems] = useState<FeedItem[]>(MOCK_FEED_ITEMS);
   const [myItems, setMyItems] = useState<FeedItem[]>([]);
   const [likedItems, setLikedItems] = useState<FeedItem[]>(MOCK_FEED_ITEMS.filter(i => i.isLiked));
+  const [shoppingInsight, setShoppingInsight] = useState<string>('');
+  const [shoppingItemsData, setShoppingItemsData] = useState<any[] | undefined>(undefined);
+  const [currentCreationId, setCurrentCreationId] = useState<string | undefined>(undefined);
 
   // --- Authentication and Session Handling ---
   const updateUserFromToken = async (token: string) => {
@@ -108,16 +111,23 @@ const App: React.FC = () => {
     setMyItems([newItem, ...myItems]);
   };
 
+  const handleShop = (insight: string, items?: any[], creationId?: string) => {
+      setShoppingInsight(insight);
+      setShoppingItemsData(items);
+      setCurrentCreationId(creationId);
+      setCurrentView(ViewState.SHOPPING);
+  };
+
   const renderView = () => {
     switch (currentView) {
                 case ViewState.HOME:
                   return <Home feedItems={feedItems} onNavigate={setCurrentView} currentUser={currentUser} />;      case ViewState.FEED:
-        return <Feed currentUser={currentUser} onNavigate={setCurrentView} />;
+        return <Feed currentUser={currentUser} onNavigate={setCurrentView} onShop={handleShop} />;
       case ViewState.CREATE:
-        return <Generate currentUser={currentUser} onNavigate={setCurrentView} onAddToFeed={handleAddToFeed} />;
+        return <Generate currentUser={currentUser} onNavigate={setCurrentView} onAddToFeed={handleAddToFeed} onShop={handleShop} />;
       case ViewState.MYPAGE:
         if (!currentUser) return <Login onLogin={handleLogin} />;
-        return <MyPage user={currentUser} onNavigate={setCurrentView} />;
+        return <MyPage user={currentUser} onNavigate={setCurrentView} onShop={handleShop} />;
       case ViewState.LOGIN:
         return <Login onLogin={handleLogin} />;
       case ViewState.ADMIN:
@@ -126,7 +136,7 @@ const App: React.FC = () => {
       case ViewState.WEBHOOK_TEST:
         return <WebhookTest onNavigate={setCurrentView} />;
       case ViewState.SHOPPING:
-        return <ShoppingPage onNavigate={setCurrentView} />;
+        return <ShoppingPage onNavigate={setCurrentView} insight={shoppingInsight} items={shoppingItemsData} creationId={currentCreationId} />;
       default:
         return <Home feedItems={feedItems} onNavigate={setCurrentView} />;
     }

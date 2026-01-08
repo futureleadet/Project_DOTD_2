@@ -25,6 +25,8 @@ export interface FeedItem {
   tags: string[];
   description?: string; // This is the original prompt
   trendInsight?: string; // This is the new field for the analysis text
+  shoppingList?: ShoppingItem[]; // New field for saved shopping results
+  isPicked?: boolean;
 }
 
 export interface GenerationParams {
@@ -56,12 +58,14 @@ export enum ViewState {
 
 export interface ShoppingItem {
   id: number | string;
+  category?: string;
   brand: string;
   name: string;
   price: string;
   tip: string;
   link: string;
   imageUrl?: string;
+  search_keyword?: string;
 }
 
 export type Gender = 'Male' | 'Female';
@@ -110,4 +114,35 @@ export interface PersonalColorSeason {
   name: string;
   icon: string;
   tones: PersonalColorTone[];
+}
+
+export interface Creation {
+  id: string;
+  user_id: string;
+  media_url: string;
+  media_type: string;
+  prompt: string;
+  created_at: string;
+  is_public: boolean;
+  is_picked_by_admin: boolean;
+  likes_count: number;
+  author_name?: string;
+  author_picture?: string;
+  recommendation_text?: string;
+  tags_array?: string[];
+  is_liked?: boolean;
+  shopping_results?: any;
+  height?: number;
+  body_type?: string;
+  style?: string;
+  colors?: string;
+}
+
+export interface Task {
+  id: string;
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  result?: {
+    creation?: Creation;
+    error?: string;
+  };
 }

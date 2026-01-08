@@ -10,16 +10,23 @@ interface ResultPageProps {
   onReset?: () => void;
   mode?: 'creation' | 'view';
   onClose?: () => void;
+  onShop?: (insight: string) => void; // Keeping for backward compatibility or direct call
+  // Extended props
+  creationId?: string;
+  shoppingList?: any[]; // Using any[] to avoid circular dependency if ShoppingItem is not imported here, but better to import
 }
 
-export const ResultPage: React.FC<ResultPageProps> = ({ 
-  generatedImage, 
-  insight, 
-  onNavigate, 
+export const ResultPage: React.FC<ResultPageProps> = ({
+  generatedImage,
+  insight,
+  onNavigate,
   onAddToFeed,
   onReset,
   mode = 'creation',
-  onClose
+  onClose,
+  onShop,
+  creationId,
+  shoppingList
 }) => {
   const [isDetailView, setIsDetailView] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -29,9 +36,17 @@ export const ResultPage: React.FC<ResultPageProps> = ({
     setCopied(id);
     setTimeout(() => setCopied(null), 2000);
   };
+  
+  // Logic to determine if Shop button should be shown
+  const showShopButton = mode === 'creation' || (mode === 'view' && shoppingList && shoppingList.length > 0);
 
-  const handleDownload = () => {
-    const link = document.createElement('a');
+  const handleShopClick = () => {
+      if (onShop && insight) {
+          onShop(insight.content);
+      }
+  };
+
+  const handleDownload = () => {    const link = document.createElement('a');
     link.href = generatedImage;
     link.download = `DOTD-${Date.now()}.png`;
     link.click();
@@ -165,14 +180,16 @@ export const ResultPage: React.FC<ResultPageProps> = ({
         )}
 
         {/* Action Button to Shopping */}
-        <div className="mt-4">
-            <button
-              onClick={() => onNavigate(ViewState.SHOPPING)}
-              className="w-full py-5 bg-gray-800 text-white rounded-xl font-bold text-lg shadow-xl active:scale-95 transition-transform hover:bg-gray-900"
-            >
-              Shop this style directly
-            </button>
-        </div>
+        {showShopButton && (
+            <div className="mt-4">
+                <button
+                onClick={handleShopClick}
+                className="w-full py-5 bg-gray-800 text-white rounded-xl font-bold text-lg shadow-xl active:scale-95 transition-transform hover:bg-gray-900"
+                >
+                {mode === 'view' ? 'View Shopping List' : 'Shop this style directly'}
+                </button>
+            </div>
+        )}
       </div>
     </>
   );

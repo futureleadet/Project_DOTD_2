@@ -10,9 +10,10 @@ interface GenerateProps {
   currentUser: User | null;
   onNavigate: (view: ViewState) => void;
   onAddToFeed: (item: FeedItem) => void;
+  onShop?: (insight: string, items?: any[], creationId?: string) => void;
 }
 
-export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onAddToFeed }) => {
+export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onAddToFeed, onShop }) => {
   const [stage, setStage] = useState<'input' | 'loading' | 'result' | 'error'>('input');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   
@@ -177,6 +178,13 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
             onNavigate={onNavigate}
             onAddToFeed={handleAddToFeedResult}
             onReset={() => setStage('input')}
+            creationId={generationResult?.creation?.id}
+            onShop={() => {
+                if (insight && onShop) {
+                    // Pass creation ID so shopping results can be saved
+                    onShop(insight.content, undefined, generationResult?.creation?.id);
+                }
+            }}
           />
       );
   }

@@ -48,6 +48,7 @@ class CreationsRepository:
             SELECT c.id, c.user_id, c.media_url, c.media_type, c.prompt, c.gender, c.age_group, 
                    c.is_public, c.is_picked_by_admin, c.likes_count, c.created_at, 
                    c.analysis_text, c.recommendation_text, c.tags_array,
+                   c.shopping_results,
                    u.name as author_name, u.picture as author_picture
             FROM creations c
             JOIN users u ON c.user_id = u.id
@@ -96,6 +97,7 @@ class CreationsRepository:
             SELECT c.id, c.user_id, c.media_url, c.media_type, c.prompt, c.gender, c.age_group, 
                    c.is_public, c.is_picked_by_admin, c.likes_count, c.created_at, 
                    c.analysis_text, c.recommendation_text, c.tags_array,
+                   c.shopping_results,
                    u.name as author_name, u.picture as author_picture
             FROM creations c
             JOIN users u ON c.user_id = u.id
@@ -202,3 +204,8 @@ class CreationsRepository:
         """
         records = await conn.fetch(query, limit)
         return [record['tag'] for record in records]
+
+    async def update_shopping_results(self, conn: asyncpg.Connection, creation_id: int, shopping_results: str) -> None:
+        """Updates the shopping_results JSONB column for a specific creation."""
+        query = "UPDATE creations SET shopping_results = $1 WHERE id = $2"
+        await conn.execute(query, shopping_results, creation_id)
