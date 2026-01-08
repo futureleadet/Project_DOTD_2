@@ -267,3 +267,12 @@
          복잡합니다.
        * 이때는 UI만 갈아끼우는 게 아니라, 기존의 handleGenerate 같은 핵심 함수들을 새 UI 버튼에 잘 연결하는 것이
          핵심입니다. 제가 이 부분을 특히 신경 써서 작업하겠습니다.
+
+           파일 위치: /root/Project_DOTD_Editing/latest_schema.sql
+### DB 나르기
+
+  이 파일을 사용하여 다른 서버의 PostgreSQL 데이터베이스에 스키마를 그대로 적용하실 수 있습니다.
+
+  적용 예시 (타 서버):
+
+   1 psql -h [호스트] -U [사용자] -d [DB명] -f latest_schema.sql
