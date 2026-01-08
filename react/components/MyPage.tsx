@@ -11,14 +11,15 @@ import { TabType, MyPageProfileProps } from './mypage/types';
 import { ResultPage } from './ResultPage';
 import ProfilePage from './generate_new/ProfilePage';
 import AlertModal from './generate_new/AlertModal';
-import { updateUserProfile } from '../services/apiService';
+import { updateUserProfile, fetchCurrentUser } from '../services/apiService';
 
 interface MyPageProps {
   user: User;
   onNavigate: (view: ViewState) => void;
 }
 
-export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
+export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate }) => {
+  const [user, setUser] = useState<User>(initialUser);
   const [activeTab, setActiveTab] = useState<TabType>('generations');
   const [myItems, setMyItems] = useState<FeedItem[]>([]);
   const [likedItems, setLikedItems] = useState<FeedItem[]>([]);
@@ -38,7 +39,7 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
     gender: user.gender || 'Female'
   });
 
-  // Sync user profile from props
+  // Sync user profile from local user state
   useEffect(() => {
     if (user) {
         setUserProfile({
@@ -51,6 +52,17 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
         });
     }
   }, [user]);
+
+  // Refresh user data on mount to get latest profile info
+  useEffect(() => {
+      const refreshUser = async () => {
+          const freshUser = await fetchCurrentUser();
+          if (freshUser) {
+              setUser(freshUser);
+          }
+      };
+      refreshUser();
+  }, []);
 
   const showAlert = (title: string, message: string) => {
       setAlertInfo({ isOpen: true, title, message });
@@ -68,15 +80,7 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
           };
 
           const updatedUser = await updateUserProfile(updateData);
-          
-          setUserProfile({
-              photo: updatedUser.avatarUrl || null,
-              height: updatedUser.height || 0,
-              faceShape: updatedUser.faceShape || null,
-              personalColor: updatedUser.personalColor || null,
-              bodyType: updatedUser.bodyType || null,
-              gender: updatedUser.gender || 'Female'
-          });
+          setUser(updatedUser); // Update local user state immediately
           
           setIsProfileOpen(false);
           showAlert("저장 완료", "프로필 정보가 저장되었습니다.");

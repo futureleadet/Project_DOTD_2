@@ -10,15 +10,15 @@ interface Props {
 }
 
 const ProfileSection: React.FC<Props> = ({ profile, onDiscovery, isLoading }) => {
-  // Helpers to get rich info
-  const getFaceInfo = (id: string) => FACE_SHAPES.find(f => f.id === id);
+  // Helpers to get rich info (Case-insensitive match)
+  const getFaceInfo = (id: string) => FACE_SHAPES.find(f => f.id.toLowerCase() === id.toLowerCase());
   
   const getBodyInfo = (gender: string, id: string) => {
-      const safeGender = gender === 'Male' ? 'Male' : 'Female';
-      return BODY_TYPES[safeGender]?.find(b => b.id === id);
+      const safeGender = gender.toLowerCase() === 'male' ? 'Male' : 'Female';
+      return BODY_TYPES[safeGender]?.find(b => b.id.toLowerCase() === id.toLowerCase());
   };
   
-  const getPersonalColorInfo = (id: string) => ALL_PERSONAL_COLORS.find(p => p.id === id);
+  const getPersonalColorInfo = (id: string) => ALL_PERSONAL_COLORS.find(p => p.id.toLowerCase() === id.toLowerCase());
 
   const faceInfo = getFaceInfo(profile.faceShape);
   const bodyInfo = getBodyInfo(profile.gender, profile.bodyType);
@@ -63,18 +63,24 @@ const ProfileSection: React.FC<Props> = ({ profile, onDiscovery, isLoading }) =>
           </div>
           
           <div className="flex flex-wrap gap-2">
-            <Badge icon={<UserIcon size={12} />} label={profile.gender === 'Male' ? 'Male' : 'Female'} />
+            <Badge icon={<UserIcon size={12} />} label={profile.gender.toLowerCase() === 'male' ? 'Male' : 'Female'} />
             
             {profile.height !== 'Unknown' && (
                 <Badge icon={<Ruler size={12} />} label={profile.height} />
             )}
             
-            {faceInfo && (
-                <Badge icon={<Smile size={12} />} label={`${faceInfo.emoji} ${faceInfo.name}`} />
+            {(faceInfo || (profile.faceShape && profile.faceShape !== 'Unknown')) && (
+                <Badge 
+                    icon={<Smile size={12} />} 
+                    label={faceInfo ? `${faceInfo.emoji} ${faceInfo.name}` : profile.faceShape} 
+                />
             )}
             
-            {bodyInfo && (
-                <Badge icon={<Activity size={12} />} label={`${bodyInfo.emoji} ${bodyInfo.name}`} />
+            {(bodyInfo || (profile.bodyType && profile.bodyType !== 'Unknown')) && (
+                <Badge 
+                    icon={<Activity size={12} />} 
+                    label={bodyInfo ? `${bodyInfo.emoji} ${bodyInfo.name}` : profile.bodyType} 
+                />
             )}
             
             {colorInfo ? (
@@ -83,7 +89,7 @@ const ProfileSection: React.FC<Props> = ({ profile, onDiscovery, isLoading }) =>
                   {colorInfo.name}
                 </span>
             ) : (
-                profile.personalColor !== 'Unknown' && (
+                profile.personalColor && profile.personalColor !== 'Unknown' && (
                     <Badge icon={<Palette size={12} />} label={profile.personalColor} />
                 )
             )}
