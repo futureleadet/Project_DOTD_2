@@ -69,6 +69,16 @@ class UserService:
         Enhances user data with real-time stats like daily creation count.
         """
         user_id = int(user_data["sub"])
+        # Fetch fresh user data from DB to get latest profile info
+        db_user = await self.user_repo.get_user_by_id(conn, user_id)
+        
+        if db_user:
+            # Merge DB data into JWT data, prioritizing DB data
+            # This ensures we have latest face_shape, etc.
+            user_data.update(db_user)
+            # Ensure 'sub' is preserved as string for JWT compatibility
+            user_data['sub'] = str(db_user['id'])
+
         daily_creations = await self.user_repo.count_creations_today(conn, user_id)
         
         # Combine JWT data with fetched stats
@@ -81,3 +91,15 @@ class UserService:
             user_data['avatarUrl'] = user_data.pop('picture')
 
         return user_data
+
+    async def update_user_profile(self, conn: asyncpg.Connection, user_id: int, profile_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Updates the user's profile information."""
+        updated_user = await self.user_repo.update_user_profile(conn, user_id, profile_data)
+        if not updated_user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Format for frontend
+        if 'picture' in updated_user:
+            updated_user['avatarUrl'] = updated_user.pop('picture')
+        
+        return updated_user

@@ -81,6 +81,8 @@ async def process_creation_task(
         body_type = form_data.get("body_type")
         style = form_data.get("style")
         colors = form_data.get("colors")
+        face_shape = form_data.get("face_shape")
+        personal_color = form_data.get("personal_color")
 
         # Add all extracted text data to the httpx_data to be sent to the webhook
         if prompt: httpx_data['prompt'] = prompt
@@ -90,6 +92,8 @@ async def process_creation_task(
         if body_type: httpx_data['body_type'] = body_type
         if style: httpx_data['style'] = style
         if colors: httpx_data['colors'] = colors
+        if face_shape: httpx_data['face_shape'] = face_shape
+        if personal_color: httpx_data['personal_color'] = personal_color
 
         # Handle image by preparing it for the 'files' parameter in a multipart request
         if 'image' in form_data and form_data['image']:
@@ -238,13 +242,15 @@ async def create_task(
     # Prepare form data for background task
     form_data = {
         "prompt": text,
-        "gender": gender,
-        "height": height,
-        "body_type": body_type,
+        "gender": gender or current_user.get("gender"),
+        "height": height or current_user.get("height"),
+        "body_type": body_type or current_user.get("body_type"),
         "style": style,
         "colors": colors,
         "age_group": age_group,
-        "is_public": is_public
+        "is_public": is_public,
+        "face_shape": current_user.get("face_shape"),
+        "personal_color": current_user.get("personal_color")
     }
     if image:
         form_data["image"] = {
@@ -252,6 +258,33 @@ async def create_task(
             "filename": image.filename,
             "content_type": image.content_type
         }
+    else:
+        # Fallback to user profile image if no image provided
+        picture_url = current_user.get("picture") or current_user.get("avatarUrl")
+        if picture_url and picture_url.startswith("/static/"):
+            # It's a local file, we can read it
+            # Remove /static/ prefix and prepend app/static/
+            relative_path = picture_url.replace("/static/", "", 1)
+            file_path = os.path.join("app/static", relative_path)
+            
+            try:
+                with open(file_path, "rb") as f:
+                    content = f.read()
+                
+                # Determine mime type from extension
+                ext = os.path.splitext(file_path)[1].lower()
+                mime_type = "image/png"
+                if ext in [".jpg", ".jpeg"]: mime_type = "image/jpeg"
+                elif ext == ".webp": mime_type = "image/webp"
+                
+                form_data["image"] = {
+                    "content": content,
+                    "filename": os.path.basename(file_path),
+                    "content_type": mime_type
+                }
+            except Exception as e:
+                print(f"Error reading profile image {file_path}: {e}")
+                # Don't raise error, just proceed without image
 
     # We need to pass the database connection string, not the connection itself
     from app.config.settings import settings

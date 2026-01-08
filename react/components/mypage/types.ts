@@ -10,4 +10,6 @@ export interface MyPageProfileProps {
   personalColor: string;
   profileImage: string;
   generationCount: number;
+  dailyGenerationsUsed: number;
+  maxDailyGenerations: number;
 }

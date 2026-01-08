@@ -9,6 +9,9 @@ import LikedSection from './mypage/LikedSection';
 import BrandArchiveSection from './mypage/BrandArchiveSection';
 import { TabType, MyPageProfileProps } from './mypage/types';
 import { ResultPage } from './ResultPage';
+import ProfilePage from './generate_new/ProfilePage';
+import AlertModal from './generate_new/AlertModal';
+import { updateUserProfile } from '../services/apiService';
 
 interface MyPageProps {
   user: User;
@@ -21,19 +24,66 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
   const [likedItems, setLikedItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);
-  
-  // Transform User to MyPageProfileProps
-  // Note: Missing fields are hardcoded or left empty for now until DB schema is updated
-  const userProfile: MyPageProfileProps = {
-    id: user.id,
-    nickname: user.name,
-    gender: 'Unknown', 
-    height: 'Unknown',
-    faceShape: 'Unknown', 
-    bodyType: 'Unknown',
-    personalColor: 'Unknown',
-    profileImage: user.avatarUrl || 'https://via.placeholder.com/150',
-    generationCount: myItems.length
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [alertInfo, setAlertInfo] = useState<{isOpen: boolean, title: string, message: string}>({
+      isOpen: false, title: '', message: ''
+  });
+
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    photo: user.avatarUrl || null,
+    height: user.height || 0,
+    faceShape: user.faceShape || null,
+    personalColor: user.personalColor || null,
+    bodyType: user.bodyType || null,
+    gender: user.gender || 'Female'
+  });
+
+  // Sync user profile from props
+  useEffect(() => {
+    if (user) {
+        setUserProfile({
+            photo: user.avatarUrl || null,
+            height: user.height || 0,
+            faceShape: user.faceShape || null,
+            personalColor: user.personalColor || null,
+            bodyType: user.bodyType || null,
+            gender: user.gender || 'Female'
+        });
+    }
+  }, [user]);
+
+  const showAlert = (title: string, message: string) => {
+      setAlertInfo({ isOpen: true, title, message });
+  };
+
+  const handleProfileSave = async (newProfile: UserProfile) => {
+      try {
+          const updateData = {
+              face_shape: newProfile.faceShape,
+              personal_color: newProfile.personalColor,
+              height: newProfile.height,
+              gender: newProfile.gender,
+              body_type: newProfile.bodyType,
+              profile_image: newProfile.photo
+          };
+
+          const updatedUser = await updateUserProfile(updateData);
+          
+          setUserProfile({
+              photo: updatedUser.avatarUrl || null,
+              height: updatedUser.height || 0,
+              faceShape: updatedUser.faceShape || null,
+              personalColor: updatedUser.personalColor || null,
+              bodyType: updatedUser.bodyType || null,
+              gender: updatedUser.gender || 'Female'
+          });
+          
+          setIsProfileOpen(false);
+          showAlert("저장 완료", "프로필 정보가 저장되었습니다.");
+      } catch (error) {
+          console.error("Failed to update profile:", error);
+          showAlert("오류", "프로필 저장에 실패했습니다.");
+      }
   };
 
   useEffect(() => {
@@ -92,6 +142,21 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
       alert("Style discovery feature coming soon!");
   };
 
+  // Profile props for ProfileSection
+  const uiProfile: MyPageProfileProps = {
+    id: user.id,
+    nickname: user.name,
+    gender: userProfile.gender, 
+    height: userProfile.height > 0 ? `${userProfile.height}cm` : 'Unknown',
+    faceShape: userProfile.faceShape || 'Unknown', 
+    bodyType: userProfile.bodyType || 'Unknown',
+    personalColor: userProfile.personalColor || 'Unknown',
+    profileImage: userProfile.photo || 'https://via.placeholder.com/150',
+    generationCount: myItems.length,
+    dailyGenerationsUsed: user.dailyGenerationsUsed || 0,
+    maxDailyGenerations: user.maxDailyGenerations || 3
+  };
+
   return (
     <div className="flex flex-col h-full bg-white relative">
       {selectedItem && (
@@ -108,11 +173,14 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
         />
       )}
 
-      <Header onBack={() => onNavigate(ViewState.HOME)} />
+      <Header 
+        onBack={() => onNavigate(ViewState.HOME)} 
+        onSettingsClick={() => setIsProfileOpen(true)}
+      />
       
       <div className="flex-1 overflow-y-auto">
         <ProfileSection 
-            profile={userProfile} 
+            profile={uiProfile} 
             onDiscovery={handleDiscovery} 
             isLoading={loading} 
         />
@@ -129,6 +197,21 @@ export const MyPage: React.FC<MyPageProps> = ({ user, onNavigate }) => {
              )}
         </div>
       </div>
+
+      <ProfilePage 
+          isOpen={isProfileOpen}
+          profile={userProfile}
+          onClose={() => setIsProfileOpen(false)}
+          onSave={handleProfileSave}
+          onShowAlert={showAlert}
+      />
+
+      <AlertModal 
+          isOpen={alertInfo.isOpen}
+          title={alertInfo.title}
+          message={alertInfo.message}
+          onClose={() => setAlertInfo(prev => ({...prev, isOpen: false}))}
+      />
     </div>
   );
 };

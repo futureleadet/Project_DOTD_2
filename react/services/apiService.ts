@@ -88,6 +88,18 @@ export const fetchCurrentUser = async (): Promise<any | null> => {
     }
 };
 
+export const updateUserProfile = async (profileData: any): Promise<User> => {
+    const response = await fetchWithAuth('/users/me', {
+        method: 'PATCH',
+        body: JSON.stringify(profileData),
+    });
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to update profile' }));
+        throw new Error(errorData.detail || 'Failed to update profile');
+    }
+    return response.json();
+};
+
 
 // --- Task/Creation Management ---
 

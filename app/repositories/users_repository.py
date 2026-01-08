@@ -10,12 +10,12 @@ class UserRepository:
         pass
 
     async def get_user_by_email(self, conn: asyncpg.Connection, email: str) -> Optional[Dict[str, Any]]:
-        query = "SELECT id, email, name, picture, role, created_at, hashed_password FROM users WHERE email = $1"
+        query = "SELECT id, email, name, picture, role, created_at, hashed_password, face_shape, personal_color, height, gender, body_type, profile_images FROM users WHERE email = $1"
         user = await conn.fetchrow(query, email)
         return dict(user) if user else None
 
     async def get_user_by_id(self, conn: asyncpg.Connection, user_id: int) -> Optional[Dict[str, Any]]:
-        query = "SELECT id, email, name, picture, role, created_at FROM users WHERE id = $1"
+        query = "SELECT id, email, name, picture, role, created_at, face_shape, personal_color, height, gender, body_type, profile_images FROM users WHERE id = $1"
         user = await conn.fetchrow(query, user_id)
         return dict(user) if user else None
     
@@ -31,6 +31,30 @@ class UserRepository:
             RETURNING id, email, name, picture, role, created_at
         """
         return await conn.fetchrow(query, email, name, picture, role, hashed_password)
+
+    async def update_user_profile(self, conn: asyncpg.Connection, user_id: int, profile_data: Dict[str, Any]) -> Dict[str, Any]:
+        set_clauses = []
+        values = []
+        idx = 1
+        
+        for key, value in profile_data.items():
+            set_clauses.append(f"{key} = ${idx}")
+            values.append(value)
+            idx += 1
+            
+        values.append(user_id)
+        
+        if not set_clauses:
+            return await self.get_user_by_id(conn, user_id)
+
+        query = f"""
+            UPDATE users
+            SET {', '.join(set_clauses)}
+            WHERE id = ${idx}
+            RETURNING id, email, name, picture, role, created_at, face_shape, personal_color, height, gender, body_type, profile_images
+        """
+        user = await conn.fetchrow(query, *values)
+        return dict(user) if user else None
 
     async def get_creations_by_user_id(self, conn: asyncpg.Connection, user_id: int) -> List[Dict[str, Any]]:
         """

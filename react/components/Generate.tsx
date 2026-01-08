@@ -1,17 +1,9 @@
-import React, { useState } from 'react';
-import { 
-  RefreshCcw, 
-  Camera, 
-  AlertCircle, 
-  Sparkles,
-  ChevronLeft,
-  Check,
-  Download,
-  ShoppingBag,
-  Copy
-} from 'lucide-react';
-import { createGenerationTask, getTaskStatus } from '../services/apiService';
-import { GenerationParams, TrendInsight, FeedItem, User, ViewState, Task } from '../types';
+import React, { useState, useEffect } from 'react';
+import { User, ViewState, FeedItem, UserProfile, TrendInsight, Task } from '../types';
+import { createGenerationTask, getTaskStatus, updateUserProfile } from '../services/apiService';
+import GeneratePage from './generate_new/GeneratePage';
+import ProfilePage from './generate_new/ProfilePage';
+import AlertModal from './generate_new/AlertModal';
 import { ResultPage } from './ResultPage';
 
 interface GenerateProps {
@@ -21,134 +13,146 @@ interface GenerateProps {
 }
 
 export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onAddToFeed }) => {
-  // --- Stages: 'input' | 'loading' | 'result' | 'error'
   const [stage, setStage] = useState<'input' | 'loading' | 'result' | 'error'>('input');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   
-  // --- Form State ---
-  const [gender, setGender] = useState<'male'|'female'>('female');
-  const [height, setHeight] = useState(165);
-  const [bodyType, setBodyType] = useState<'slim'|'average'|'chubby'>('average');
-  const [selectedStyle, setSelectedStyle] = useState('');
-  const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [userPrompt, setUserPrompt] = useState('');
-  const [placeholderIndex, setPlaceholderIndex] = useState(0);
-  const [uploadedImage, setUploadedImage] = useState<string | undefined>(undefined);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  // Alert State
+  const [alertInfo, setAlertInfo] = useState<{isOpen: boolean, title: string, message: string}>({
+      isOpen: false, title: '', message: ''
+  });
 
-  // --- Result State ---
+  // Profile State
+  const [userProfile, setUserProfile] = useState<UserProfile>({
+    photo: null,
+    height: 0,
+    faceShape: null,
+    personalColor: null,
+    bodyType: null,
+    gender: 'Female'
+  });
+
+  // Result State
   const [generatedImage, setGeneratedImage] = useState<string>('');
   const [insight, setInsight] = useState<TrendInsight | null>(null);
-  const [copiedSection, setCopiedSection] = useState<string | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
   const [generationResult, setGenerationResult] = useState<any | null>(null);
 
-  // --- Constants ---
-  const styles = ['Vintage', 'Classic', 'Casual', 'Street', 'Minimal', 'Sporty'];
-  
-  const colors = [
-    { name: 'Red', value: 'bg-red-500' },
-    { name: 'Blue', value: 'bg-blue-500' },
-    { name: 'Pink', value: 'bg-pink-400' },
-    { name: 'Purple', value: 'bg-purple-500' },
-    { name: 'Brown', value: 'bg-amber-700' },
-    { name: 'White', value: 'bg-white border border-gray-200' },
-    { name: 'Grey', value: 'bg-gray-400' },
-    { name: 'Black', value: 'bg-gray-900' },
-  ];
-
-  const placeholders = [
-    "Recommended street look for rainy London days.",
-    "Lovely pastel outfit for a first date.",
-    "Comfortable yet hip style for a weekend picnic.",
-    "Professional office look for an important presentation.",
-    "Wedding guest look: stylish but not too flashy."
-  ];
-
-  // --- Handlers ---
-  const toggleColor = (colorName: string) => {
-    if (selectedColors.includes(colorName)) {
-      setSelectedColors(selectedColors.filter(c => c !== colorName));
-    } else {
-      if (selectedColors.length < 3) setSelectedColors([...selectedColors, colorName]);
+  // Sync user profile from props
+  useEffect(() => {
+    if (currentUser) {
+        setUserProfile({
+            photo: currentUser.avatarUrl || null,
+            height: currentUser.height || 0,
+            faceShape: currentUser.faceShape || null,
+            personalColor: currentUser.personalColor || null,
+            bodyType: currentUser.bodyType || null,
+            gender: currentUser.gender || 'Female'
+        });
     }
+  }, [currentUser]);
+
+  const showAlert = (title: string, message: string) => {
+      setAlertInfo({ isOpen: true, title, message });
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
+  const handleProfileSave = async (newProfile: UserProfile) => {
+      if (!currentUser) return;
+      
+      try {
+          // Prepare data for API
+          const updateData = {
+              face_shape: newProfile.faceShape,
+              personal_color: newProfile.personalColor,
+              height: newProfile.height,
+              gender: newProfile.gender,
+              body_type: newProfile.bodyType,
+              profile_image: newProfile.photo // Base64 or URL
+          };
+
+          const updatedUser = await updateUserProfile(updateData);
+          
+          // Update local state
+          setUserProfile({
+              photo: updatedUser.avatarUrl || null,
+              height: updatedUser.height || 0,
+              faceShape: updatedUser.faceShape || null,
+              personalColor: updatedUser.personalColor || null,
+              bodyType: updatedUser.bodyType || null,
+              gender: updatedUser.gender || 'Female'
+          });
+          
+          setIsProfileOpen(false);
+          showAlert("저장 완료", "프로필 정보가 저장되었습니다.");
+      } catch (error) {
+          console.error("Failed to update profile:", error);
+          showAlert("오류", "프로필 저장에 실패했습니다.");
+      }
   };
 
-  const handleGenerate = async () => {
-    if (!currentUser) {
-      alert("Please log in to generate.");
-      onNavigate(ViewState.LOGIN);
-      return;
-    }
-    if (!selectedStyle) {
-        alert("Please select a style.");
-        return;
-    }
-    
-    setStage('loading');
-    
-    try {
-      // Use the existing backend flow
-      const { task_id } = await createGenerationTask({
-        imageFile: selectedFile,
-        prompt: userPrompt,
-        gender,
-        height,
-        bodyType,
-        style: selectedStyle,
-        colors: selectedColors,
-      });
+  const handleGenerate = async (params: { prompt: string, colors: string[], style: string }) => {
+      if (!currentUser) {
+          onNavigate(ViewState.LOGIN);
+          return;
+      }
 
-      // Start polling for the result
-      const intervalId = setInterval(async () => {
-        try {
-          const task: Task = await getTaskStatus(task_id);
+      setStage('loading');
 
-          if (task.status === 'completed' && task.result?.creation) {
-            clearInterval(intervalId);
-            setGenerationResult(task.result);
-            setGeneratedImage(task.result.creation.media_url);
-            setInsight({
-              title: "Style Analysis",
-              content: task.result.creation.recommendation_text || 'AI analysis result.',
-              tags: task.result.creation.tags_array || [],
-            });
-            setStage('result');
-          } else if (task.status === 'failed') {
-            clearInterval(intervalId);
-            setErrorMsg(task.result?.error || "Generation failed. Please try again.");
-            setStage('error');
-          }
-        } catch (pollError) {
-          clearInterval(intervalId);
-          console.error("Polling error:", pollError);
-          setErrorMsg("An error occurred while checking the task status.");
+      try {
+          // No need to fetch and send image from frontend anymore!
+          // Backend will automatically use the user's profile photo from DB.
+          const { task_id } = await createGenerationTask({
+              imageFile: null, // Let backend handle it
+              prompt: params.prompt,
+              gender: userProfile.gender,
+              height: userProfile.height,
+              bodyType: userProfile.bodyType || 'average',
+              style: params.style,
+              colors: params.colors,
+          });
+
+          // Start polling
+          const intervalId = setInterval(async () => {
+            try {
+              const task: Task = await getTaskStatus(task_id);
+    
+              if (task.status === 'completed' && task.result?.creation) {
+                clearInterval(intervalId);
+                setGenerationResult(task.result);
+                setGeneratedImage(task.result.creation.media_url);
+                
+                // Parse Trend Insight safely
+                let trendContent = task.result.creation.recommendation_text || 'AI analysis result.';
+                // If it's a JSON string, you might want to parse it, but for now assuming text
+                
+                setInsight({
+                  title: "Style Analysis",
+                  content: trendContent,
+                  tags: task.result.creation.tags_array || [],
+                });
+                setStage('result');
+              } else if (task.status === 'failed') {
+                clearInterval(intervalId);
+                setErrorMsg(task.result?.error || "Generation failed. Please try again.");
+                setStage('error');
+              }
+            } catch (pollError) {
+              clearInterval(intervalId);
+              console.error("Polling error:", pollError);
+              setErrorMsg("An error occurred while checking the task status.");
+              setStage('error');
+            }
+          }, 3000);
+
+      } catch (error: any) {
+          console.error("Generation error:", error);
+          setErrorMsg(error.message || "Failed to start generation.");
           setStage('error');
-        }
-      }, 3000); // Poll every 3 seconds
-
-    } catch (createError: any) {
-      console.error("Create task error:", createError);
-      setErrorMsg(createError.message || "Failed to start the generation task.");
-      setStage('error');
-    }
+      }
   };
 
-  const handleAddToFeed = () => {
+  const handleAddToFeedResult = () => {
     if (!currentUser || !generationResult?.creation) return;
     
-    // We need to transform the Creation object into a FeedItem
     const newItem: FeedItem = {
       id: generationResult.creation.id,
       imageUrl: generationResult.creation.media_url,
@@ -159,245 +163,67 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
       isLiked: generationResult.creation.is_liked || false,
       tags: generationResult.creation.tags_array || [],
       description: generationResult.creation.prompt,
+      trendInsight: generationResult.creation.recommendation_text,
     };
     onAddToFeed(newItem);
-    alert("Uploaded to Feed!");
+    showAlert("업로드 완료", "피드에 게시되었습니다.");
   };
 
-  const copyToClipboard = (text: string, id: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedSection(id);
-    setTimeout(() => setCopiedSection(null), 2000);
-  };
-
-  // --- Render Functions ---
-
-  if (stage === 'loading') {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white">
-        <div className="relative w-24 h-24 mb-8">
-          <div className="absolute inset-0 border-4 border-gray-100 rounded-full"></div>
-          <div className="absolute inset-0 border-4 border-purple-600 rounded-full border-t-transparent animate-spin"></div>
-        </div>
-        <h2 className="text-xl font-bold mb-2 animate-pulse">Designing your look...</h2>
-        <p className="text-sm text-gray-500">Analzying style trends & colors</p>
-      </div>
-    );
+  if (stage === 'result') {
+      return (
+          <ResultPage 
+            generatedImage={generatedImage}
+            insight={insight}
+            onNavigate={onNavigate}
+            onAddToFeed={handleAddToFeedResult}
+            onReset={() => setStage('input')}
+          />
+      );
   }
 
   if (stage === 'error') {
-    return (
-      <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 text-center">
-        <AlertCircle size={48} className="text-red-500 mb-4" />
-        <h2 className="text-xl font-bold mb-2">Generation Failed</h2>
-        <p className="text-sm text-gray-500 mb-8">{errorMsg}</p>
-        <button 
-          onClick={() => setStage('input')}
-          className="bg-black text-white px-8 py-3 rounded-xl font-bold"
-        >
-          Try Again
-        </button>
-      </div>
-    );
-  }
-
-  if (stage === 'result') {
-    return (
-      <ResultPage 
-        generatedImage={generatedImage}
-        insight={insight}
-        onNavigate={onNavigate}
-        onAddToFeed={handleAddToFeed}
-        onReset={() => setStage('input')}
-      />
-    );
-  }
-
-  // --- Input Stage ---
-  return (
-    <div className="bg-gray-50 flex justify-center font-sans text-gray-900">
-      <div className="w-full max-w-md bg-white shadow-xl">
-        <div className="px-5 py-4 border-b border-gray-100 flex items-center">
-            <button onClick={() => onNavigate(ViewState.HOME)} className="flex items-center text-sm font-semibold text-gray-600 hover:text-black">
-                <ChevronLeft size={20} className="mr-1" />
-                Home
+      return (
+        <div className="min-h-screen flex flex-col items-center justify-center bg-white px-6 text-center">
+            <h2 className="text-xl font-bold mb-2">Generation Failed</h2>
+            <p className="text-sm text-gray-500 mb-8">{errorMsg}</p>
+            <button 
+            onClick={() => setStage('input')}
+            className="bg-black text-white px-8 py-3 rounded-xl font-bold"
+            >
+            Try Again
             </button>
         </div>
-        <div className="px-5 py-6 pb-28"> {/* Added pb-28 for footer spacing */}
-          
-          {/* Body Info */}
-          <section className="mb-8">
-            <h2 className="text-lg font-bold mb-5 flex items-center">
-              <span className="w-1.5 h-5 bg-black mr-2 rounded-full"></span>
-              Body Profile
-            </h2>
+      );
+  }
 
-            <div className="mb-6">
-              <label className="block text-sm text-gray-500 mb-2 font-medium">Gender</label>
-              <div className="flex bg-gray-100 rounded-xl p-1">
-                <button 
-                  onClick={() => setGender('male')}
-                  className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${gender === 'male' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-400'}`}
-                >
-                  ♂ Male
-                </button>
-                <button 
-                  onClick={() => setGender('female')}
-                  className={`flex-1 py-3 rounded-lg text-sm font-bold transition-all ${gender === 'female' ? 'bg-white shadow-sm text-pink-500' : 'text-gray-400'}`}
-                >
-                  ♀ Female
-                </button>
-              </div>
-            </div>
+  return (
+    <div className="relative w-full bg-white">
+        <GeneratePage 
+            userProfile={userProfile}
+            userName={currentUser?.name || ''}
+            onOpenProfile={() => setIsProfileOpen(true)}
+            isProfileOpen={isProfileOpen}
+            onToggleGender={() => setUserProfile(p => ({...p, gender: p.gender === 'Male' ? 'Female' : 'Male'}))} // Local toggle only, save updates DB
+            onShowAlert={showAlert}
+            onGenerate={handleGenerate}
+            isGenerating={stage === 'loading'}
+            onBack={() => onNavigate(ViewState.HOME)}
+        />
+        
+        <ProfilePage 
+            isOpen={isProfileOpen}
+            profile={userProfile}
+            onClose={() => setIsProfileOpen(false)}
+            onSave={handleProfileSave}
+            onShowAlert={showAlert}
+        />
 
-            <div className="mb-6">
-              <div className="flex justify-between items-end mb-2">
-                <label className="block text-sm text-gray-500 font-medium">Height</label>
-                <span className="text-lg font-bold text-purple-600 bg-purple-50 px-3 py-1 rounded-lg">
-                  {height} cm
-                </span>
-              </div>
-              <input 
-                type="range" 
-                min="145" 
-                max="190" 
-                step="1" 
-                value={height}
-                onChange={(e) => setHeight(Number(e.target.value))}
-                className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-black"
-              />
-            </div>
-
-            <div>
-              <label className="block text-sm text-gray-500 mb-2 font-medium">Body Type</label>
-              <div className="grid grid-cols-3 gap-3">
-                {['slim', 'average', 'chubby'].map((type) => (
-                  <button
-                    key={type}
-                    onClick={() => setBodyType(type as any)}
-                    className={`py-3 rounded-xl border transition-all text-sm font-medium capitalize ${
-                      bodyType === type 
-                      ? 'border-black bg-black text-white' 
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Style & Colors */}
-          <section className="mb-8">
-            <h2 className="text-lg font-bold mb-5 flex items-center">
-              <span className="w-1.5 h-5 bg-black mr-2 rounded-full"></span>
-              Preferences
-            </h2>
-
-            <div className="mb-6">
-              <label className="block text-sm text-gray-500 mb-3 font-medium">Style <span className="text-xs font-normal text-gray-400 ml-1">(Select 1)</span></label>
-              <div className="grid grid-cols-3 gap-3">
-                {styles.map((style) => (
-                  <button
-                    key={style}
-                    onClick={() => setSelectedStyle(style)}
-                    className={`h-12 flex items-center justify-center rounded-xl border transition-all ${
-                      selectedStyle === style 
-                      ? 'border-purple-500 bg-purple-50 text-purple-700 font-bold ring-1 ring-purple-500' 
-                      : 'border-gray-200 text-gray-600 hover:bg-gray-50'
-                    }`}
-                  >
-                    {style}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between items-center mb-3">
-                <label className="block text-sm text-gray-500 font-medium">Colors</label>
-                <span className="text-xs text-purple-600 font-medium">{selectedColors.length} / 3</span>
-              </div>
-              <div className="flex flex-wrap gap-3">
-                {colors.map((color) => {
-                  const isSelected = selectedColors.includes(color.name);
-                  return (
-                    <button
-                      key={color.name}
-                      onClick={() => toggleColor(color.name)}
-                      className={`w-8 h-8 rounded-full shadow-sm flex items-center justify-center transition-transform active:scale-95 relative ${color.value} ${color.name === 'White' ? '' : 'border border-transparent'}`}
-                      aria-label={color.name}
-                    >
-                      {isSelected && (
-                        <div className="absolute inset-0 rounded-full bg-black/20 flex items-center justify-center">
-                          <Check className="w-5 h-5 text-white" />
-                        </div>
-                      )}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-
-          {/* Details */}
-          <section className="mb-8">
-            <h2 className="text-lg font-bold mb-4 flex items-center justify-between">
-              <div className="flex items-center">
-                <span className="w-1.5 h-5 bg-black mr-2 rounded-full"></span>
-                Details
-              </div>
-              <button 
-                onClick={() => setPlaceholderIndex((prev) => (prev + 1) % placeholders.length)}
-                className="text-xs flex items-center text-gray-500 bg-gray-100 px-2 py-1 rounded-md"
-              >
-                <RefreshCcw className="w-3 h-3 mr-1" />
-                Refresh Ex.
-              </button>
-            </h2>
-            
-            <textarea
-              value={userPrompt}
-              onChange={(e) => setUserPrompt(e.target.value)}
-              placeholder={placeholders[placeholderIndex]}
-              className="w-full h-32 p-4 bg-gray-50 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-purple-500 focus:bg-white text-sm"
-            />
-          </section>
-
-           {/* Upload */}
-           <section className="">
-            <h2 className="text-lg font-bold mb-4 flex items-center">
-               <span className="w-1.5 h-5 bg-black mr-2 rounded-full"></span>
-               Your Photo <span className="text-xs font-normal text-gray-400 ml-2">(Optional)</span>
-            </h2>
-            <div className="border-2 border-dashed border-gray-300 rounded-xl h-32 flex flex-col items-center justify-center bg-gray-50 text-gray-400 cursor-pointer hover:bg-gray-100 hover:border-gray-400 transition-all relative overflow-hidden">
-               <input type="file" accept="image/*" onChange={handleImageUpload} className="absolute inset-0 opacity-0 cursor-pointer" />
-               {uploadedImage ? (
-                 <img src={uploadedImage} alt="Uploaded" className="w-full h-full object-cover" />
-               ) : (
-                 <>
-                   <Camera className="w-6 h-6 mb-2" />
-                   <span className="text-xs font-medium">Upload Reference Photo</span>
-                 </>
-               )}
-            </div>
-          </section>
-        </div>
-
-        <footer className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white border-t border-gray-100 px-5 py-4 z-10 shadow-lg rounded-t-2xl">
-          <button 
-            onClick={handleGenerate}
-            disabled={!selectedStyle}
-            className={`w-full py-4 rounded-xl text-lg font-bold flex items-center justify-center shadow-lg transition-all ${
-              selectedStyle ? 'bg-black text-white active:scale-[0.98]' : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-            }`}
-          >
-            <Sparkles className="w-5 h-5 mr-2 text-purple-400" />
-            Generate Look
-          </button>
-        </footer>
-      </div>
+        <AlertModal 
+            isOpen={alertInfo.isOpen}
+            title={alertInfo.title}
+            message={alertInfo.message}
+            onClose={() => setAlertInfo(prev => ({...prev, isOpen: false}))}
+        />
     </div>
   );
 };

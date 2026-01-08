@@ -6,6 +6,11 @@ export interface User {
   dailyGenerationsUsed: number;
   maxDailyGenerations: number;
   role?: string; // To distinguish ADMIN users
+  faceShape?: string;
+  personalColor?: string;
+  height?: number;
+  gender?: 'Male' | 'Female';
+  bodyType?: string;
 }
 
 export interface FeedItem {
@@ -56,4 +61,52 @@ export interface ShoppingItem {
   tip: string;
   link: string;
   imageUrl?: string;
+}
+
+export type Gender = 'Male' | 'Female';
+
+export interface UserProfile {
+  photo: string | null;
+  height: number;
+  faceShape: string | null;
+  personalColor: string | null;
+  bodyType: string | null;
+  gender: Gender;
+}
+
+export interface BodyTypeDefinition {
+  id: string;
+  name: string;
+  kor: string;
+  emoji: string;
+  desc: string;
+}
+
+export interface ColorDefinition {
+  id: string;
+  name: string;
+  hex: string;
+  border?: boolean;
+}
+
+export interface StyleDefinition {
+  id: string;
+  name: string;
+  koreanName: string;
+  desc: string;
+  imageSeed: string; // Using a seed for picsum to get consistent images
+}
+
+export interface PersonalColorTone {
+  id: string;
+  name: string;
+  kor: string;
+  color: string;
+}
+
+export interface PersonalColorSeason {
+  id: string;
+  name: string;
+  icon: string;
+  tones: PersonalColorTone[];
 }
