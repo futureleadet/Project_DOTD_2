@@ -3,6 +3,7 @@ export interface User {
   name: string;
   email: string;
   avatarUrl: string;
+  generationPhoto?: string | null;
   dailyGenerationsUsed: number;
   maxDailyGenerations: number;
   role?: string; // To distinguish ADMIN users

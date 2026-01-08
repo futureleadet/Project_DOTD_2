@@ -31,7 +31,7 @@ export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate })
   });
 
   const [userProfile, setUserProfile] = useState<UserProfile>({
-    photo: user.avatarUrl || null,
+    photo: user.generationPhoto || null,
     height: user.height || 0,
     faceShape: user.faceShape || null,
     personalColor: user.personalColor || null,
@@ -43,7 +43,7 @@ export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate })
   useEffect(() => {
     if (user) {
         setUserProfile({
-            photo: user.avatarUrl || null,
+            photo: user.generationPhoto || null,
             height: user.height || 0,
             faceShape: user.faceShape || null,
             personalColor: user.personalColor || null,
@@ -155,7 +155,7 @@ export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate })
     faceShape: userProfile.faceShape || 'Unknown', 
     bodyType: userProfile.bodyType || 'Unknown',
     personalColor: userProfile.personalColor || 'Unknown',
-    profileImage: userProfile.photo || 'https://via.placeholder.com/150',
+    profileImage: user.avatarUrl || user.generationPhoto || 'https://via.placeholder.com/150',
     generationCount: myItems.length,
     dailyGenerationsUsed: user.dailyGenerationsUsed || 0,
     maxDailyGenerations: user.maxDailyGenerations || 3

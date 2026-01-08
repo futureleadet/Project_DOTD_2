@@ -12,7 +12,8 @@ class UserService:
         """For Google OAuth: Finds a user or creates them if they don't exist."""
         user = await self.user_repo.get_user_by_email(conn, email)
         if not user:
-            user = await self.user_repo.create_user(conn, email=email, name=name, picture=picture, role="MEMBER", hashed_password=None)
+            # Save Google picture to profile_image, leave picture (generation photo) empty
+            user = await self.user_repo.create_user(conn, email=email, name=name, picture=None, profile_image=picture, role="MEMBER", hashed_password=None)
         return user
 
     async def register_new_user(self, conn: asyncpg.Connection, email: str, password: str, name: str) -> Dict[str, Any]:
@@ -30,7 +31,8 @@ class UserService:
             conn, 
             email=email,
             name=name,
-            picture=default_picture,
+            picture=None, # Generation photo empty
+            profile_image=default_picture, # Avatar
             role="MEMBER", 
             hashed_password=hashed_pass
         )
@@ -74,7 +76,6 @@ class UserService:
         
         if db_user:
             # Merge DB data into JWT data, prioritizing DB data
-            # This ensures we have latest face_shape, etc.
             user_data.update(db_user)
             # Ensure 'sub' is preserved as string for JWT compatibility
             user_data['sub'] = str(db_user['id'])
@@ -82,13 +83,24 @@ class UserService:
         daily_creations = await self.user_repo.count_creations_today(conn, user_id)
         
         # Combine JWT data with fetched stats
-        # The user can generate 3 times per day as requested
         user_data['dailyGenerationsUsed'] = daily_creations
         user_data['maxDailyGenerations'] = 3
         
-        # Rename 'picture' to 'avatarUrl' for frontend compatibility
+        # Rename 'profile_image' to 'avatarUrl' for frontend
+        if 'profile_image' in user_data:
+            user_data['avatarUrl'] = user_data.get('profile_image')
+            
+        # Rename 'picture' to 'generationPhoto'
         if 'picture' in user_data:
-            user_data['avatarUrl'] = user_data.pop('picture')
+            user_data['generationPhoto'] = user_data.get('picture')
+
+        # Map snake_case to camelCase for profile fields
+        if 'face_shape' in user_data:
+            user_data['faceShape'] = user_data.get('face_shape')
+        if 'personal_color' in user_data:
+            user_data['personalColor'] = user_data.get('personal_color')
+        if 'body_type' in user_data:
+            user_data['bodyType'] = user_data.get('body_type')
 
         return user_data
 
@@ -99,7 +111,18 @@ class UserService:
             raise HTTPException(status_code=404, detail="User not found")
         
         # Format for frontend
+        if 'profile_image' in updated_user:
+            updated_user['avatarUrl'] = updated_user.get('profile_image')
+            
         if 'picture' in updated_user:
-            updated_user['avatarUrl'] = updated_user.pop('picture')
+            updated_user['generationPhoto'] = updated_user.get('picture')
+
+        # Map snake_case to camelCase for profile fields
+        if 'face_shape' in updated_user:
+            updated_user['faceShape'] = updated_user.get('face_shape')
+        if 'personal_color' in updated_user:
+            updated_user['personalColor'] = updated_user.get('personal_color')
+        if 'body_type' in updated_user:
+            updated_user['bodyType'] = updated_user.get('body_type')
         
         return updated_user

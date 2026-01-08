@@ -41,7 +41,7 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
   useEffect(() => {
     if (currentUser) {
         setUserProfile({
-            photo: currentUser.avatarUrl || null,
+            photo: currentUser.generationPhoto || null,
             height: currentUser.height || 0,
             faceShape: currentUser.faceShape || null,
             personalColor: currentUser.personalColor || null,
@@ -73,7 +73,7 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
           
           // Update local state
           setUserProfile({
-              photo: updatedUser.avatarUrl || null,
+              photo: updatedUser.generationPhoto || null,
               height: updatedUser.height || 0,
               faceShape: updatedUser.faceShape || null,
               personalColor: updatedUser.personalColor || null,

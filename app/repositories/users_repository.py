@@ -10,12 +10,12 @@ class UserRepository:
         pass
 
     async def get_user_by_email(self, conn: asyncpg.Connection, email: str) -> Optional[Dict[str, Any]]:
-        query = "SELECT id, email, name, picture, role, created_at, hashed_password, face_shape, personal_color, height, gender, body_type, profile_images FROM users WHERE email = $1"
+        query = "SELECT id, email, name, picture, role, created_at, hashed_password, face_shape, personal_color, height, gender, body_type, profile_images, profile_image FROM users WHERE email = $1"
         user = await conn.fetchrow(query, email)
         return dict(user) if user else None
 
     async def get_user_by_id(self, conn: asyncpg.Connection, user_id: int) -> Optional[Dict[str, Any]]:
-        query = "SELECT id, email, name, picture, role, created_at, face_shape, personal_color, height, gender, body_type, profile_images FROM users WHERE id = $1"
+        query = "SELECT id, email, name, picture, role, created_at, face_shape, personal_color, height, gender, body_type, profile_images, profile_image FROM users WHERE id = $1"
         user = await conn.fetchrow(query, user_id)
         return dict(user) if user else None
     
@@ -24,13 +24,13 @@ class UserRepository:
         users = await conn.fetch(query)
         return [dict(user) for user in users]
 
-    async def create_user(self, conn: asyncpg.Connection, email: str, name: str, picture: Optional[str] = None, role: str = "MEMBER", hashed_password: Optional[str] = None) -> Dict[str, Any]:
+    async def create_user(self, conn: asyncpg.Connection, email: str, name: str, picture: Optional[str] = None, role: str = "MEMBER", hashed_password: Optional[str] = None, profile_image: Optional[str] = None) -> Dict[str, Any]:
         query = """
-            INSERT INTO users (email, name, picture, role, hashed_password)
-            VALUES ($1, $2, $3, $4, $5)
-            RETURNING id, email, name, picture, role, created_at
+            INSERT INTO users (email, name, picture, role, hashed_password, profile_image)
+            VALUES ($1, $2, $3, $4, $5, $6)
+            RETURNING id, email, name, picture, role, created_at, profile_image
         """
-        return await conn.fetchrow(query, email, name, picture, role, hashed_password)
+        return await conn.fetchrow(query, email, name, picture, role, hashed_password, profile_image)
 
     async def update_user_profile(self, conn: asyncpg.Connection, user_id: int, profile_data: Dict[str, Any]) -> Dict[str, Any]:
         set_clauses = []
@@ -51,7 +51,7 @@ class UserRepository:
             UPDATE users
             SET {', '.join(set_clauses)}
             WHERE id = ${idx}
-            RETURNING id, email, name, picture, role, created_at, face_shape, personal_color, height, gender, body_type, profile_images
+            RETURNING id, email, name, picture, role, created_at, face_shape, personal_color, height, gender, body_type, profile_images, profile_image
         """
         user = await conn.fetchrow(query, *values)
         return dict(user) if user else None
