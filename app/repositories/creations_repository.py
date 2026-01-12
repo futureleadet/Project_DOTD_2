@@ -209,3 +209,26 @@ class CreationsRepository:
         """Updates the shopping_results JSONB column for a specific creation."""
         query = "UPDATE creations SET shopping_results = $1 WHERE id = $2"
         await conn.execute(query, shopping_results, creation_id)
+
+    async def get_total_creations_count(self, conn: asyncpg.Connection, user_id: int) -> int:
+        """
+        Returns the total number of creations for a user.
+        """
+        query = "SELECT COUNT(*) FROM creations WHERE user_id = $1"
+        count = await conn.fetchval(query, user_id)
+        return count if count is not None else 0
+
+    async def get_latest_recommendation_texts(self, conn: asyncpg.Connection, user_id: int, limit: int = 5) -> List[str]:
+        """
+        Retrieves the recommendation_text of the user's latest creations.
+        Ignores creations where recommendation_text is null or empty.
+        """
+        query = """
+            SELECT recommendation_text
+            FROM creations
+            WHERE user_id = $1 AND recommendation_text IS NOT NULL AND recommendation_text != ''
+            ORDER BY created_at DESC
+            LIMIT $2
+        """
+        records = await conn.fetch(query, user_id, limit)
+        return [record['recommendation_text'] for record in records]

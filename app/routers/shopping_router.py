@@ -18,7 +18,7 @@ async def recommend_products(
     request: ShoppingRequest,
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
-    webhook_url = "http://n8n.nemone.store/webhook-test/f7897612-b58a-48bc-b4c4-1edf8e985552"
+    webhook_url = "http://n8n.nemone.store/webhook/f7897612-b58a-48bc-b4c4-1edf8e985552"
     creations_repo = CreationsRepository()
     
     try:

@@ -426,3 +426,15 @@ export const getShoppingRecommendations = async (trendInsight: string, creationI
     }
     return response.json();
 };
+
+/**
+ * Fetches the brand archive consulting data.
+ */
+export const getBrandArchive = async (): Promise<any> => {
+    const response = await fetchWithAuth('/api/analysis/brand-archive');
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: 'Failed to fetch brand archive' }));
+        throw new Error(errorData.detail || 'Server error');
+    }
+    return response.json();
+};

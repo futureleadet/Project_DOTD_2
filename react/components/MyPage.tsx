@@ -164,14 +164,14 @@ export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate, o
           case 'liked':
               return <LikedSection items={likedItems} onBrowseStyles={() => onNavigate(ViewState.FEED)} onItemClick={setSelectedItem} />;
           case 'brand-archive':
-              return <BrandArchiveSection />;
+              return <BrandArchiveSection onNavigate={onNavigate} />;
           default:
               return null;
       }
   };
 
   const handleDiscovery = () => {
-      alert("Style discovery feature coming soon!");
+      setActiveTab('brand-archive');
   };
 
   // Profile props for ProfileSection

@@ -83,6 +83,7 @@ async def process_creation_task(
         colors = form_data.get("colors")
         face_shape = form_data.get("face_shape")
         personal_color = form_data.get("personal_color")
+        user_name = form_data.get("userName")
 
         # Add all extracted text data to the httpx_data to be sent to the webhook
         if prompt: httpx_data['prompt'] = prompt
@@ -94,6 +95,7 @@ async def process_creation_task(
         if colors: httpx_data['colors'] = colors
         if face_shape: httpx_data['face_shape'] = face_shape
         if personal_color: httpx_data['personal_color'] = personal_color
+        if user_name: httpx_data['userName'] = user_name
 
         # Handle image by preparing it for the 'files' parameter in a multipart request
         if 'image' in form_data and form_data['image']:
@@ -250,7 +252,8 @@ async def create_task(
         "age_group": age_group,
         "is_public": is_public,
         "face_shape": current_user.get("face_shape"),
-        "personal_color": current_user.get("personal_color")
+        "personal_color": current_user.get("personal_color"),
+        "userName": current_user.get("name")
     }
     if image:
         form_data["image"] = {
