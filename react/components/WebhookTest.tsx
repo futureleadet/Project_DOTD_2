@@ -20,7 +20,7 @@ export const WebhookTest: React.FC<WebhookTestProps> = ({ onNavigate }) => {
     {
       id: 'welcome',
       role: 'bot',
-      content: '안녕하세요! 무엇을 도와드릴까요?',
+      content: '안녕하세요! 어떤 패션 트렌드가 궁금하세요?',
       timestamp: new Date()
     }
   ]);
@@ -91,7 +91,7 @@ export const WebhookTest: React.FC<WebhookTestProps> = ({ onNavigate }) => {
   return (
     <div className="flex flex-col h-[100dvh] bg-white max-w-full overflow-hidden">
       {/* Header */}
-      <div className="bg-white px-4 py-3 flex items-center border-b border-gray-100 sticky top-0 z-10 pt-safe">
+      <div className="bg-white px-4 pb-4 pt-12 flex items-center border-b border-gray-100 sticky top-0 z-10">
         <button 
           onClick={() => onNavigate(ViewState.HOME)}
           className="mr-3 p-2 hover:bg-gray-100 rounded-full transition-colors"
@@ -108,7 +108,7 @@ export const WebhookTest: React.FC<WebhookTestProps> = ({ onNavigate }) => {
       </div>
 
       {/* Messages Area */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div className="flex-1 overflow-y-auto p-4 pt-6 space-y-4 bg-gray-50">
         {messages.map((msg) => (
           <div 
             key={msg.id} 
