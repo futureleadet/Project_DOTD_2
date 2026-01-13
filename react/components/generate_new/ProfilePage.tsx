@@ -68,7 +68,7 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ isOpen, profile, onClose, onS
 
       {/* Bottom Sheet Modal */}
       <div 
-        className={`w-full h-[90%] bg-white rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] flex flex-col transition-transform duration-300 ease-out transform pointer-events-auto ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
+        className={`w-full max-w-md h-[90%] bg-white rounded-t-[32px] shadow-[0_-10px_40px_rgba(0,0,0,0.2)] flex flex-col transition-transform duration-300 ease-out transform pointer-events-auto ${isOpen ? 'translate-y-0' : 'translate-y-full'}`}
       >
         {/* Header */}
         <div className="px-6 py-5 flex justify-between items-center border-b border-gray-50 shrink-0">
@@ -89,9 +89,9 @@ const ProfilePage: React.FC<ProfilePageProps> = ({ isOpen, profile, onClose, onS
                  <div className="w-1.5 h-1.5 rounded-full bg-red-500"></div>
               </div>
               <label className="relative group cursor-pointer w-full">
-                <div className="w-full h-32 rounded-2xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center overflow-hidden hover:border-gray-400 transition-colors border-dashed">
+                <div className="w-full h-80 rounded-2xl bg-gray-50 border border-gray-200 flex flex-col items-center justify-center overflow-hidden hover:border-gray-400 transition-colors border-dashed">
                   {localProfile.photo ? (
-                    <img src={localProfile.photo} alt="Profile" className="w-full h-full object-cover" />
+                    <img src={localProfile.photo} alt="Profile" className="w-full h-full object-contain" />
                   ) : (
                     <>
                       <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shadow-sm mb-2">

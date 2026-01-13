@@ -1,15 +1,16 @@
 import React from 'react';
 import { MyPageProfileProps } from './types';
-import { Camera, Sparkles, Loader2, ChevronRight, User as UserIcon, Ruler, Smile, Activity, Palette } from 'lucide-react';
+import { Camera, Sparkles, Loader2, ChevronRight, User as UserIcon, Ruler, Smile, Activity, Palette, RefreshCw } from 'lucide-react';
 import { FACE_SHAPES, BODY_TYPES, ALL_PERSONAL_COLORS } from '../../constants';
 
 interface Props {
   profile: MyPageProfileProps;
   onDiscovery: () => void;
   isLoading: boolean;
+  onUpdateProfile?: (updates: { gender: 'Male' | 'Female' }) => void;
 }
 
-const ProfileSection: React.FC<Props> = ({ profile, onDiscovery, isLoading }) => {
+const ProfileSection: React.FC<Props> = ({ profile, onDiscovery, isLoading, onUpdateProfile }) => {
   // Helpers to get rich info (Case-insensitive match)
   const getFaceInfo = (id: string) => FACE_SHAPES.find(f => f.id.toLowerCase() === id.toLowerCase());
   
@@ -34,9 +35,24 @@ const ProfileSection: React.FC<Props> = ({ profile, onDiscovery, isLoading }) =>
               alt="User Face" 
               className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <div className="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
               <Camera className="text-white w-6 h-6" />
             </div>
+
+            {/* Gender Toggle Button Overlay */}
+            <button 
+                onClick={(e) => {
+                    e.stopPropagation();
+                    if (onUpdateProfile) {
+                        const newGender = profile.gender.toLowerCase() === 'male' ? 'Female' : 'Male';
+                        onUpdateProfile({ gender: newGender });
+                    }
+                }}
+                className="absolute bottom-1 right-1 bg-black/60 hover:bg-black text-white px-2 py-1 rounded-full backdrop-blur-sm transition-colors flex items-center gap-1 z-10 border border-white/20 shadow-sm"
+            >
+                 <span className="text-[10px]">{profile.gender.toLowerCase() === 'male' ? '🙆‍♂️' : '🙆‍♀️'}</span>
+                 <RefreshCw size={8} className="text-white/80" />
+            </button>
           </div>
           
           {/* Generation Count Badge */}

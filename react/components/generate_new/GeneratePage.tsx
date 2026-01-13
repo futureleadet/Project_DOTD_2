@@ -30,9 +30,9 @@ const GeneratePage: React.FC<GeneratePageProps> = ({ userProfile, userName, onOp
   const safeGender = getSafeGender(userProfile.gender);
 
   // Helper to get emoji/name safely
-  const getFaceInfo = () => FACE_SHAPES.find(f => f.id === userProfile.faceShape);
-  const getBodyInfo = () => BODY_TYPES[safeGender]?.find(b => b.id === userProfile.bodyType);
-  const getPersonalColorInfo = () => ALL_PERSONAL_COLORS.find(p => p.id === userProfile.personalColor);
+  const getFaceInfo = () => FACE_SHAPES.find(f => f.id.toLowerCase() === userProfile.faceShape?.toLowerCase());
+  const getBodyInfo = () => BODY_TYPES[safeGender]?.find(b => b.id.toLowerCase() === userProfile.bodyType?.toLowerCase());
+  const getPersonalColorInfo = () => ALL_PERSONAL_COLORS.find(p => p.id.toLowerCase() === userProfile.personalColor?.toLowerCase());
   
   const currentStyle = STYLES.find(s => s.id === selectedStyleId) || STYLES[0];
 
@@ -127,34 +127,56 @@ const GeneratePage: React.FC<GeneratePageProps> = ({ userProfile, userName, onOp
                              <RefreshCw className="text-gray-400 ml-0.5" size={10} />
                         </button>
 
-                        {/* Height Badge - Hide if 0 */}
-                        {userProfile.height > 0 && (
+                        {/* Height Badge */}
+                        {userProfile.height > 0 ? (
                             <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-full text-gray-700">
                                 <Edit2 className="text-yellow-600" size={10} />
                                 <span className="text-[11px] font-bold">{userProfile.height}cm</span>
                             </div>
+                        ) : (
+                            <button onClick={(e) => { e.stopPropagation(); onOpenProfile(); }} className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 border-dashed px-3 py-1.5 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 hover:border-solid transition-all">
+                                <span className="text-[10px]">+</span>
+                                <span className="text-[11px] font-bold">키</span>
+                            </button>
                         )}
 
-                        {/* Other Badges */}
-                        {userProfile.faceShape && getFaceInfo() && (
+                        {/* Face Shape Badge */}
+                        {(userProfile.faceShape && getFaceInfo()) ? (
                              <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-full text-gray-700">
                                 <span className="text-[10px]">{getFaceInfo()?.emoji}</span>
                                 <span className="text-[11px] font-bold">{getFaceInfo()?.name}</span>
                             </div>
+                        ) : (
+                            <button onClick={(e) => { e.stopPropagation(); onOpenProfile(); }} className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 border-dashed px-3 py-1.5 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 hover:border-solid transition-all">
+                                <span className="text-[10px]">+</span>
+                                <span className="text-[11px] font-bold">얼굴형</span>
+                            </button>
                         )}
 
-                        {userProfile.personalColor && getPersonalColorInfo() && (
+                        {/* Personal Color Badge */}
+                        {(userProfile.personalColor && getPersonalColorInfo()) ? (
                             <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-full text-gray-700">
                                 <div className="w-2 h-2 rounded-full border border-black/10" style={{backgroundColor: getPersonalColorInfo()?.color}}></div>
                                 <span className="text-[11px] font-bold">{getPersonalColorInfo()?.name}</span>
                             </div>
+                        ) : (
+                            <button onClick={(e) => { e.stopPropagation(); onOpenProfile(); }} className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 border-dashed px-3 py-1.5 rounded-full text-gray-400 hover:bg-gray-100 hover:text-gray-600 hover:border-solid transition-all">
+                                <span className="text-[10px]">+</span>
+                                <span className="text-[11px] font-bold">퍼스널컬러</span>
+                            </button>
                         )}
 
-                        {userProfile.bodyType && getBodyInfo() && (
+                        {/* Body Type Badge */}
+                        {(userProfile.bodyType && getBodyInfo()) ? (
                              <div className="flex items-center gap-1.5 bg-gray-50 border border-gray-100 px-3 py-1.5 rounded-full text-gray-700">
                                 <span className="text-[10px]">{getBodyInfo()?.emoji}</span>
                                 <span className="text-[11px] font-bold">{getBodyInfo()?.name}</span>
                             </div>
+                        ) : (
+                            <button onClick={(e) => { e.stopPropagation(); onOpenProfile(); }} className="flex items-center gap-1.5 bg-gray-50 border border-gray-200 border-dashed px-3 py-1.5 rounded-full text-red-400 border-red-200 bg-red-50 hover:bg-red-100 hover:text-red-600 hover:border-solid transition-all animate-pulse">
+                                <span className="text-[10px]">⚠️</span>
+                                <span className="text-[11px] font-bold">체형 선택</span>
+                            </button>
                         )}
                     </div>
                 </div>

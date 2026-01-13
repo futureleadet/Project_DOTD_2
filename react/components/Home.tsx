@@ -51,7 +51,7 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate, currentUser }
   const previewItems = feedItems.slice(0, 4);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(true);
-  const [pickedItems, setPickedItems] = useState<Creation[]>([]);
+  // const [pickedItems, setPickedItems] = useState<Creation[]>([]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -68,7 +68,7 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate, currentUser }
     }
   }, []);
   
-  useEffect(() => {
+  /* useEffect(() => {
     const fetchPickedItems = async () => {
       try {
         const items = await getPickedCreations(6); // Fetch up to 6 picked items
@@ -78,7 +78,7 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate, currentUser }
       }
     };
     fetchPickedItems();
-  }, []);
+  }, []); */
 
   const togglePlay = () => {
     const video = videoRef.current;
@@ -143,7 +143,7 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate, currentUser }
       </div>
 
       {/* Staff Picks Section */}
-      {pickedItems.length > 0 && (
+      {/* {pickedItems.length > 0 && (
         <div className="p-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold flex items-center">
@@ -167,7 +167,7 @@ export const Home: React.FC<HomeProps> = ({ feedItems, onNavigate, currentUser }
             ))}
           </div>
         </div>
-      )}
+      )} */}
 
       {/* Feed Preview Section */}
       <div className="p-4">

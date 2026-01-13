@@ -91,6 +91,29 @@ export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate, o
       }
   };
 
+  const handleQuickUpdate = async (updates: Partial<UserProfile>) => {
+      try {
+          // Merge updates with current userProfile
+          const updatedProfile = { ...userProfile, ...updates };
+          
+          const updateData = {
+              face_shape: updatedProfile.faceShape,
+              personal_color: updatedProfile.personalColor,
+              height: updatedProfile.height,
+              gender: updatedProfile.gender,
+              body_type: updatedProfile.bodyType,
+              profile_image: updatedProfile.photo
+          };
+
+          const updatedUser = await updateUserProfile(updateData);
+          setUser(updatedUser); // Update local user state immediately
+          // showAlert("업데이트 완료", "정보가 수정되었습니다."); // Optional feedback
+      } catch (error) {
+          console.error("Failed to quick update profile:", error);
+          showAlert("오류", "정보 수정에 실패했습니다.");
+      }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
@@ -225,6 +248,7 @@ export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate, o
             profile={uiProfile} 
             onDiscovery={handleDiscovery} 
             isLoading={loading} 
+            onUpdateProfile={handleQuickUpdate}
         />
         
         <div className="h-2 bg-gray-50 border-t border-b border-gray-100"></div>
