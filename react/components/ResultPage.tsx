@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Download, Copy, ChevronLeft, Sparkles, Check } from 'lucide-react';
+import { Download, Copy, ChevronLeft, Sparkles, Check, Heart } from 'lucide-react';
 import { ViewState, TrendInsight } from '../types';
 
 interface ResultPageProps {
@@ -14,6 +14,9 @@ interface ResultPageProps {
   // Extended props
   creationId?: string;
   shoppingList?: any[]; // Using any[] to avoid circular dependency if ShoppingItem is not imported here, but better to import
+  isLiked?: boolean;
+  likesCount?: number;
+  onLikeToggle?: () => void;
 }
 
 export const ResultPage: React.FC<ResultPageProps> = ({
@@ -26,7 +29,10 @@ export const ResultPage: React.FC<ResultPageProps> = ({
   onClose,
   onShop,
   creationId,
-  shoppingList
+  shoppingList,
+  isLiked,
+  likesCount,
+  onLikeToggle
 }) => {
   const [isDetailView, setIsDetailView] = useState(false);
   const [copied, setCopied] = useState<string | null>(null);
@@ -95,6 +101,27 @@ export const ResultPage: React.FC<ResultPageProps> = ({
           >
             <Download size={24} />
           </button>
+
+          {/* Like Button & Count */}
+          {(typeof likesCount === 'number') && (
+              <div className="absolute bottom-4 right-4 flex flex-col items-center gap-1 z-10">
+                  <button 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        if (onLikeToggle) onLikeToggle();
+                    }}
+                    className="p-3 bg-white/80 backdrop-blur-sm rounded-full shadow-sm hover:bg-white transition-colors group active:scale-95"
+                  >
+                    <Heart 
+                        size={24} 
+                        className={`${isLiked ? 'fill-red-500 text-red-500' : 'text-gray-600 group-hover:text-red-500 transition-colors'}`} 
+                    />
+                  </button>
+                  <span className="text-xs font-bold text-white bg-black/50 px-2.5 py-1 rounded-full backdrop-blur-md shadow-sm min-w-[24px] text-center">
+                    {likesCount}
+                  </span>
+              </div>
+          )}
         </div>
 
         {/* Buttons - Only show in creation mode */}

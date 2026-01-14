@@ -11,6 +11,7 @@ import { TabType, MyPageProfileProps } from './mypage/types';
 import { ResultPage } from './ResultPage';
 import ProfilePage from './generate_new/ProfilePage';
 import AlertModal from './generate_new/AlertModal';
+import { ShoppingPage } from './ShoppingPage';
 import { updateUserProfile, fetchCurrentUser } from '../services/apiService';
 
 interface MyPageProps {
@@ -26,6 +27,7 @@ export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate, o
   const [likedItems, setLikedItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null);
+  const [isShopping, setIsShopping] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [alertInfo, setAlertInfo] = useState<{isOpen: boolean, title: string, message: string}>({
       isOpen: false, title: '', message: ''
@@ -214,7 +216,15 @@ export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate, o
 
   return (
     <div className="flex flex-col h-full bg-white relative">
-      {selectedItem && (
+      {isShopping && selectedItem ? (
+        <ShoppingPage 
+          onNavigate={onNavigate}
+          onBack={() => setIsShopping(false)}
+          items={selectedItem.shoppingList}
+          insight={selectedItem.trendInsight}
+          creationId={selectedItem.id}
+        />
+      ) : selectedItem && (
         <ResultPage
           mode="view"
           generatedImage={selectedItem.imageUrl}
@@ -224,17 +234,13 @@ export const MyPage: React.FC<MyPageProps> = ({ user: initialUser, onNavigate, o
              tags: selectedItem.tags
           } : null}
           onNavigate={onNavigate}
-          onClose={() => setSelectedItem(null)}
+          onClose={() => {
+              setSelectedItem(null);
+              setIsShopping(false);
+          }}
           shoppingList={selectedItem.shoppingList}
           creationId={selectedItem.id}
-          onShop={() => {
-              if (onShop) {
-                  // If items exist, pass them. Otherwise just pass insight (though user said no webhook for MyPage)
-                  // If no items, the button shouldn't be visible or enabled ideally, 
-                  // but here we pass whatever we have. ResultPage should handle visibility.
-                  onShop(selectedItem.trendInsight || '', selectedItem.shoppingList, selectedItem.id);
-              }
-          }}
+          onShop={() => setIsShopping(true)}
         />
       )}
 

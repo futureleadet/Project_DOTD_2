@@ -5,6 +5,7 @@ import GeneratePage from './generate_new/GeneratePage';
 import ProfilePage from './generate_new/ProfilePage';
 import AlertModal from './generate_new/AlertModal';
 import { ResultPage } from './ResultPage';
+import { ShoppingPage } from './ShoppingPage';
 
 interface GenerateProps {
   currentUser: User | null;
@@ -14,7 +15,7 @@ interface GenerateProps {
 }
 
 export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onAddToFeed, onShop }) => {
-  const [stage, setStage] = useState<'input' | 'loading' | 'result' | 'error'>('input');
+  const [stage, setStage] = useState<'input' | 'loading' | 'result' | 'error' | 'shopping'>('input');
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   
   // Alert State
@@ -170,6 +171,17 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
     showAlert("업로드 완료", "피드에 게시되었습니다.");
   };
 
+  if (stage === 'shopping') {
+    return (
+        <ShoppingPage 
+          onNavigate={onNavigate}
+          onBack={() => setStage('result')}
+          insight={insight?.content}
+          creationId={generationResult?.creation?.id}
+        />
+    );
+  }
+
   if (stage === 'result') {
       return (
           <ResultPage 
@@ -179,14 +191,10 @@ export const Generate: React.FC<GenerateProps> = ({ currentUser, onNavigate, onA
             onAddToFeed={handleAddToFeedResult}
             onReset={() => setStage('input')}
             creationId={generationResult?.creation?.id}
-            onShop={() => {
-                if (insight && onShop) {
-                    // Pass creation ID so shopping results can be saved
-                    onShop(insight.content, undefined, generationResult?.creation?.id);
-                }
-            }}
-          />
-      );
+                      onShop={() => {
+                          setStage('shopping');
+                      }}
+                    />      );
   }
 
   if (stage === 'error') {

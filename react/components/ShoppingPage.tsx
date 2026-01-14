@@ -5,65 +5,19 @@ import { getShoppingRecommendations } from '../services/apiService';
 
 interface ShoppingPageProps {
   onNavigate: (view: ViewState) => void;
+  onBack?: () => void;
   items?: ShoppingItem[];
   insight?: string;
   creationId?: string;
 }
 
-export const ShoppingPage: React.FC<ShoppingPageProps> = ({ onNavigate, items, insight, creationId }) => {
+export const ShoppingPage: React.FC<ShoppingPageProps> = ({ onNavigate, onBack, items, insight, creationId }) => {
   const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(items || []);
   const [loading, setLoading] = useState<boolean>(!items && !!insight);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-      // If items are passed directly, use them (mock mode or view mode)
-      if (items) {
-          setShoppingItems(items);
-          setLoading(false);
-          return;
-      }
-
-      if (!insight) {
-          // No insight provided, maybe show empty or mock? 
-          // For now, let's keep mock if no insight is passed for dev purposes
-          if (shoppingItems.length === 0) {
-            // Keep default mock data logic if desired, or show empty
-            setLoading(false);
-          }
-          return;
-      }
-
-      const fetchItems = async () => {
-          setLoading(true);
-          setError(null);
-          try {
-              // Pass creationId if available, so backend can save the results
-              const data = await getShoppingRecommendations(insight, creationId);
-              if (data && data.shopping_list) {
-                  // Map API response to ShoppingItem interface
-                  const mappedItems: ShoppingItem[] = data.shopping_list.map((item: any, index: number) => ({
-                      id: index,
-                      category: item.category,
-                      brand: item.brand,
-                      name: item.item_name,
-                      price: item.price,
-                      tip: item.reason,
-                      link: item.link,
-                      imageUrl: item.thumbnail_url,
-                      search_keyword: item.search_keyword
-                  }));
-                  setShoppingItems(mappedItems);
-              } else {
-                  setShoppingItems([]);
-              }
-          } catch (err) {
-              console.error("Failed to fetch shopping items:", err);
-              setError("Failed to load recommendations. Please try again.");
-          } finally {
-              setLoading(false);
-          }
-      };
-
+// ... (omitted for brevity in replace call, but keeping context lines)
       fetchItems();
   }, [insight, items, creationId]);
 
@@ -71,7 +25,7 @@ export const ShoppingPage: React.FC<ShoppingPageProps> = ({ onNavigate, items, i
     <div className="flex flex-col bg-white min-h-screen font-sans pb-24 overflow-y-auto">
       {/* Header */}
       <div className="p-4 flex items-center border-b border-gray-100 sticky top-0 bg-white z-10">
-        <button onClick={() => onNavigate(ViewState.CREATE)} className="p-2 mr-2 hover:bg-gray-50 rounded-full">
+        <button onClick={() => onBack ? onBack() : onNavigate(ViewState.CREATE)} className="p-2 mr-2 hover:bg-gray-50 rounded-full">
           <ChevronLeft size={24} />
         </button>
         <h1 className="text-2xl font-bold tracking-widest mx-auto pr-8 text-center">

@@ -296,6 +296,9 @@ export const Feed: React.FC<FeedProps> = ({ currentUser, onNavigate, onShop }) =
           }}
           shoppingList={selectedItem.shoppingList}
           creationId={selectedItem.id}
+          isLiked={selectedItem.isLiked}
+          likesCount={selectedItem.likes}
+          onLikeToggle={() => handleLikeToggle(selectedItem)}
         />
       )}
     </div>
