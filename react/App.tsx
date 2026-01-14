@@ -32,6 +32,7 @@ const App: React.FC = () => {
   const [shoppingInsight, setShoppingInsight] = useState<string>('');
   const [shoppingItemsData, setShoppingItemsData] = useState<any[] | undefined>(undefined);
   const [currentCreationId, setCurrentCreationId] = useState<string | undefined>(undefined);
+  const [previousView, setPreviousView] = useState<ViewState>(ViewState.HOME);
 
   // --- Authentication and Session Handling ---
   const updateUserFromToken = async (token: string) => {
@@ -112,6 +113,7 @@ const App: React.FC = () => {
   };
 
   const handleShop = (insight: string, items?: any[], creationId?: string) => {
+      setPreviousView(currentView);
       setShoppingInsight(insight);
       setShoppingItemsData(items);
       setCurrentCreationId(creationId);
@@ -136,7 +138,7 @@ const App: React.FC = () => {
       case ViewState.WEBHOOK_TEST:
         return <WebhookTest onNavigate={setCurrentView} />;
       case ViewState.SHOPPING:
-        return <ShoppingPage onNavigate={setCurrentView} insight={shoppingInsight} items={shoppingItemsData} creationId={currentCreationId} />;
+        return <ShoppingPage onNavigate={setCurrentView} onBack={() => setCurrentView(previousView)} insight={shoppingInsight} items={shoppingItemsData} creationId={currentCreationId} />;
       default:
         return <Home feedItems={feedItems} onNavigate={setCurrentView} />;
     }

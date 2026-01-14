@@ -291,7 +291,7 @@ export const Feed: React.FC<FeedProps> = ({ currentUser, onNavigate, onShop }) =
           onClose={() => setSelectedItem(null)}
           onShop={() => {
               if (onShop) {
-                  onShop(selectedItem.trendInsight || '', selectedItem.shoppingList, selectedItem.id);
+                  onShop(selectedItem.trendInsight || selectedItem.description || 'Recommended Style', selectedItem.shoppingList, selectedItem.id);
               }
           }}
           shoppingList={selectedItem.shoppingList}

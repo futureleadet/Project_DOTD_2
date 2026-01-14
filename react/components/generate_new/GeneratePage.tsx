@@ -71,7 +71,7 @@ const GeneratePage: React.FC<GeneratePageProps> = ({ userProfile, userName, onOp
           <X className="text-black" size={24} />
         </button>
         <h1 className="text-lg font-black tracking-widest text-black">GENERATE</h1>
-        <Menu className="text-gray-400 cursor-pointer hover:text-black" size={24} />
+        <div className="w-8" /> {/* Placeholder to maintain centering */}
       </div>
 
       <div className="px-5 py-2 space-y-6 pb-20">

@@ -17,7 +17,52 @@ export const ShoppingPage: React.FC<ShoppingPageProps> = ({ onNavigate, onBack, 
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-// ... (omitted for brevity in replace call, but keeping context lines)
+      // If items are passed directly, use them (mock mode or view mode)
+      if (items) {
+          setShoppingItems(items);
+          setLoading(false);
+          return;
+      }
+
+      if (!insight) {
+          // No insight provided
+          if (shoppingItems.length === 0) {
+            setLoading(false);
+          }
+          return;
+      }
+
+      const fetchItems = async () => {
+          setLoading(true);
+          setError(null);
+          try {
+              // Pass creationId if available, so backend can save the results
+              const data = await getShoppingRecommendations(insight, creationId);
+              if (data && data.shopping_list) {
+                  // Map API response to ShoppingItem interface
+                  const mappedItems: ShoppingItem[] = data.shopping_list.map((item: any, index: number) => ({
+                      id: index,
+                      category: item.category,
+                      brand: item.brand,
+                      name: item.item_name,
+                      price: item.price,
+                      tip: item.reason,
+                      link: item.link,
+                      imageUrl: item.thumbnail_url,
+                      search_keyword: item.search_keyword
+                  }));
+                  setShoppingItems(mappedItems);
+              } else {
+                  setShoppingItems([]);
+              }
+          } catch (err) {
+              console.error("Failed to fetch shopping items:", err);
+              setError("Failed to load recommendations. Please try again.");
+          } finally {
+              setLoading(false);
+          }
+      };
+
       fetchItems();
   }, [insight, items, creationId]);
 
