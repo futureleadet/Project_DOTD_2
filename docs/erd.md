@@ -9,15 +9,15 @@ erDiagram
         string email UK
         string name
         string picture
-        string role "DEFAULT 'MEMBER'"
+        string role
         timestamp created_at
         string hashed_password
         string face_shape
         string personal_color
         int height
-        string gender "DEFAULT 'female'"
+        string gender
         string body_type
-        text[] profile_images
+        string profile_images_array
         string profile_image
     }
 
@@ -28,17 +28,17 @@ erDiagram
         text media_type
         text prompt
         timestamp created_at
-        boolean is_public "DEFAULT true"
-        boolean is_picked_by_admin "DEFAULT false"
-        int likes_count "DEFAULT 0"
+        boolean is_public
+        boolean is_picked_by_admin
+        int likes_count
         text analysis_text
         text recommendation_text
-        text[] tags_array
+        string tags_array
         int height
         string body_type
         string style
         string colors
-        jsonb shopping_results
+        string shopping_results_json
         string gender
         string age_group
     }
@@ -55,42 +55,42 @@ erDiagram
         int user_id FK
         string filename
         string filelink
-        jsonb result
+        string result_json
         timestamp created_at
     }
 
     n8n_chat_histories {
         int id PK
         string session_id
-        jsonb message
+        string message_json
     }
 
     n8n_amore {
         uuid id PK
         text text
-        jsonb metadata
-        vector embedding
+        string metadata_json
+        string embedding_vector
     }
 
     n8n_dotd {
         uuid id PK
         text text
-        jsonb metadata
-        vector embedding
+        string metadata_json
+        string embedding_vector
     }
 
     %% Relationships
-    users ||--o{ creations : "creates"
-    users ||--o{ likes : "performs"
-    creations ||--o{ likes : "receives"
-    users ||--o{ analysis_results : "owns"
+    users ||--o{ creations : creates
+    users ||--o{ likes : performs
+    creations ||--o{ likes : receives
+    users ||--o{ analysis_results : owns
 ```
 
 ## Table Descriptions
 
-*   **users**: Stores user account information, including profile details like body type, face shape, and personal color used for styling.
-*   **creations**: Stores the generated OOTD images, prompts, AI analysis results, and shopping recommendations.
-*   **likes**: Junction table for storing user likes on creations to support the community feed features.
-*   **analysis_results**: Logs history of file analyses performed by users.
-*   **n8n_chat_histories**: Stores chat session data for the chatbot feature powered by n8n.
-*   **n8n_amore / n8n_dotd**: Vector stores for RAG (Retrieval-Augmented Generation) or similarity search features.
+*   **users**: Stores user account information.
+*   **creations**: Stores the generated OOTD images and metadata.
+*   **likes**: Stores user likes on creations.
+*   **analysis_results**: Logs analysis history.
+*   **n8n_chat_histories**: Stores chat session data.
+*   **n8n_amore / n8n_dotd**: Vector stores.
